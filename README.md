@@ -49,11 +49,11 @@ koodi0001/
 
 | Rooli            | Oletusnäkymä | Hakemukset | Kalenteri | Lista | Kartta |
 |------------------|-------------|------------|-----------|-------|--------|
-| Admin            | Hakemukset  | ✅          | ✅         | ✅    | ✅      |
-| Liitto           | Hakemukset  | ✅          | ✅         | ✅    | ✅      |
-| Kilpailunjohtaja | Hakemukset  | ✅          | ✅         | ✅    | ✅      |
-| Kilpailija       | Kalenteri   | ❌          | ✅         | ✅    | ✅      |
-| Yleisö           | Kalenteri   | ❌          | ✅         | ✅    | ✅      |
+| Admin            | Etusivu     | ✅          | ✅         | ✅    | ✅      |
+| Liitto           | Etusivu     | ✅          | ✅         | ✅    | ✅      |
+| Kilpailunjohtaja | Etusivu     | ✅          | ✅         | ✅    | ✅      |
+| Kilpailija       | Etusivu     | ❌          | ✅         | ✅    | ✅      |
+| Yleisö           | Etusivu     | ❌          | ✅         | ✅    | ✅      |
 
 Roolia vaihdetaan yläpalkin pudotusvalikosta – käyttäjähallintaa ei ole.
 
