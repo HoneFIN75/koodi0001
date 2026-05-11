@@ -483,6 +483,151 @@
     .btn-ghost { background: transparent; border: 1px solid var(--clr-border); color: var(--clr-text); }
     .btn-ghost:hover { background: var(--clr-bg); }
 
+    /* ── Hakemusmockup-modal ─────────────────────────── */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 1200;
+      background: rgba(15, 23, 42, .56);
+      backdrop-filter: blur(2px);
+      padding: 20px;
+    }
+    .modal-backdrop.open {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-sheet {
+      width: min(1120px, 100%);
+      max-height: calc(100vh - 40px);
+      overflow: auto;
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 18px 60px rgba(15, 23, 42, .28);
+      border: 1px solid #dbe3ef;
+      display: flex;
+      flex-direction: column;
+    }
+    .modal-head {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      display: flex;
+      gap: 10px;
+      justify-content: space-between;
+      align-items: flex-start;
+      background: linear-gradient(145deg, #f8fbff 0%, #eff6ff 100%);
+      border-bottom: 1px solid var(--clr-border);
+      padding: 22px 24px;
+    }
+    .modal-title {
+      font-size: 22px;
+      font-weight: 800;
+      line-height: 1.25;
+      color: #0f172a;
+    }
+    .modal-subtitle {
+      font-size: 13px;
+      color: #334155;
+      margin-top: 8px;
+      line-height: 1.55;
+      max-width: 760px;
+    }
+    .modal-close {
+      border: 1px solid var(--clr-border);
+      border-radius: 8px;
+      background: #fff;
+      color: #334155;
+      width: 34px;
+      height: 34px;
+      cursor: pointer;
+      font-size: 18px;
+    }
+    .application-form {
+      padding: 20px 24px 24px;
+      display: grid;
+      gap: 14px;
+    }
+    .form-section {
+      border: 1px solid #dbe3ef;
+      border-radius: 12px;
+      background: #fcfdff;
+      padding: 16px;
+      display: grid;
+      gap: 12px;
+    }
+    .form-section h2 {
+      font-size: 16px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .form-section p, .form-section li {
+      color: #334155;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+    .field label, .group-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #475569;
+    }
+    .field input, .field select, .field textarea {
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 10px 11px;
+      font: inherit;
+      font-size: 14px;
+      color: #0f172a;
+      background: #fff;
+    }
+    .field textarea { min-height: 86px; resize: vertical; }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      border-color: #3b82f6;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, .14);
+    }
+    .choice-group {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 8px 12px;
+    }
+    .choice {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 13px;
+      color: #1e293b;
+    }
+    .choice input { margin-top: 3px; }
+    .form-actions {
+      position: sticky;
+      bottom: 0;
+      z-index: 2;
+      background: #fff;
+      border-top: 1px solid var(--clr-border);
+      padding: 16px 24px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .hint-list {
+      margin-left: 16px;
+      display: grid;
+      gap: 6px;
+    }
+
     /* ── Toast ───────────────────────────────────────── */
     #toast {
       position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
@@ -527,6 +672,14 @@
       .two-col > * { min-width: 0; }
       .section-header { align-items: flex-start; }
       .month-label { min-width: 120px; }
+      .modal-backdrop { padding: 10px; }
+      .modal-sheet { max-height: calc(100vh - 20px); }
+      .modal-head { padding: 16px; }
+      .modal-title { font-size: 18px; }
+      .application-form { padding: 12px; }
+      .form-section { padding: 12px; }
+      .form-actions { padding: 12px; justify-content: stretch; }
+      .form-actions .btn { flex: 1; justify-content: center; }
     }
   </style>
 </head>
@@ -616,7 +769,7 @@
   <div class="view" id="view-hakemukset">
     <div class="section-header">
       <h1 class="section-title">Hakemukset</h1>
-      <button class="btn btn-primary" onclick="showToast('Uusi hakemus -toiminto tulossa!')">+ Uusi hakemus</button>
+      <button class="btn btn-primary" onclick="openNewApplicationModal()">+ Uusi hakemus</button>
     </div>
     <div class="two-col">
       <!-- Left: application list -->
@@ -716,6 +869,199 @@
   </div>
 
 </main>
+
+<div id="applicationModal" class="modal-backdrop" aria-hidden="true" onclick="dismissNewApplicationModal(event)">
+  <div class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="applicationModalTitle">
+    <div class="modal-head">
+      <div>
+        <h1 id="applicationModalTitle" class="modal-title">Suomen frisbeegolfliitto ry - Kilpailuhakemuskaavake 2025-2026</h1>
+        <p class="modal-subtitle">
+          Mockup havainnollistaa kilpailuhakemuksen kokonaisuuden. Täytä olennaiset tiedot ja varmista, että hakemus
+          lähetetään ajoissa sekä liiton vaatimusten mukaisesti.
+        </p>
+      </div>
+      <button class="modal-close" type="button" aria-label="Sulje hakemuslomake" onclick="closeNewApplicationModal()">✕</button>
+    </div>
+    <form class="application-form" onsubmit="event.preventDefault(); submitApplicationMockup();">
+      <section class="form-section">
+        <h2>Hakemuksen kuvaus / ohjeistus</h2>
+        <ul class="hint-list">
+          <li>Hakemus jätetään viimeistään 5 viikkoa ennen kilpailua.</li>
+          <li>TD:llä ja apu-TD:llä tulee olla voimassa oleva jäsenyys, PDGA-jäsenyys ja toimitsijakoe.</li>
+          <li>Liitto laskuttaa käsittely- ja sanktiointimaksut yleisperiaatteiden mukaisesti jälkikäteen.</li>
+          <li>Hakija sitoutuu PDGA:n sääntöihin sekä liiton kurinpito- ja antidopingvaatimuksiin.</li>
+        </ul>
+      </section>
+
+      <section class="form-section">
+        <h2>Hakijan yhteystiedot</h2>
+        <div class="form-grid">
+          <div class="field"><label for="applicantOrg">Hakijan seura tai yritys</label><input id="applicantOrg" type="text" /></div>
+          <div class="field"><label for="applicantName">Hakijan nimi</label><input id="applicantName" type="text" /></div>
+          <div class="field"><label for="applicantPdga">PDGA-numero</label><input id="applicantPdga" type="number" /></div>
+          <div class="field"><label for="applicantEmail">Hakijan sähköpostiosoite</label><input id="applicantEmail" type="email" /></div>
+          <div class="field"><label for="applicantPhone">Hakijan puhelinnumero</label><input id="applicantPhone" type="tel" /></div>
+          <div class="field"><label for="billingInfo">Laskutusyhteystiedot</label><textarea id="billingInfo"></textarea></div>
+        </div>
+        <div>
+          <div class="group-label">TD- ja apu-TD -kelpoisuus vahvistettu</div>
+          <div class="choice-group">
+            <label class="choice"><input type="radio" name="tdValidity" checked /> Kyllä</label>
+            <label class="choice"><input type="radio" name="tdValidity" /> Ei</label>
+          </div>
+        </div>
+      </section>
+
+      <section class="form-section">
+        <h2>1. Kilpailun perustiedot</h2>
+        <div class="form-grid">
+          <div class="field"><label for="eventName">Kilpailun nimi</label><input id="eventName" type="text" /></div>
+          <div class="field"><label for="eventOrganizer">Järjestäjä</label><input id="eventOrganizer" type="text" /></div>
+          <div class="field"><label for="eventCity">Paikkakunta</label><input id="eventCity" type="text" /></div>
+          <div class="field"><label for="eventStart">Kilpailun aloituspäivämäärä</label><input id="eventStart" type="date" /></div>
+          <div class="field"><label for="eventEnd">Kilpailun päätöspäivämäärä</label><input id="eventEnd" type="date" /></div>
+          <div class="field"><label for="courseName">Rata</label><input id="courseName" type="text" /></div>
+          <div class="field"><label for="courseAddress">Radan osoite</label><input id="courseAddress" type="text" /></div>
+          <div class="field"><label for="eventTier">Kilpailun taso / PDGA tier</label>
+            <select id="eventTier"><option>A-tier</option><option>B-tier</option><option selected>C-tier</option><option>L-tier</option><option>Other</option></select>
+          </div>
+          <div class="field"><label for="maxPlayers">Pelaajamäärä maksimi</label><input id="maxPlayers" type="number" min="1" /></div>
+          <div class="field"><label for="holesPerRound">Väylien määrä per kierros</label><input id="holesPerRound" type="number" min="1" /></div>
+          <div class="field"><label for="roundsPerPlayer">Kierrosten määrä per pelaaja</label><input id="roundsPerPlayer" type="number" min="1" /></div>
+        </div>
+        <div class="choice-group">
+          <label class="choice"><input type="checkbox" checked /> Olen tarkistanut alueellisen kilpailukalenterin.</label>
+          <label class="choice"><input type="radio" name="appliedCompetition" checked /> Haettava kilpailu: Erilliskilpailu</label>
+          <label class="choice"><input type="radio" name="appliedCompetition" /> Haettava kilpailu: PDGA-liiga</label>
+          <label class="choice"><input type="radio" name="appliedCompetition" /> Haettava kilpailu: Pro-tour</label>
+          <label class="choice"><input type="radio" name="classMode" checked /> Kilpailuluokat: Pro- ja amatööriluokat</label>
+          <label class="choice"><input type="radio" name="classMode" /> Kilpailuluokat: Rating-perusteiset</label>
+        </div>
+      </section>
+
+      <section class="form-section">
+        <h2>2. Kilpailun yhteystiedot</h2>
+        <div class="form-grid">
+          <div class="field"><label for="eventPhone">Kilpailun puhelinnumero</label><input id="eventPhone" type="tel" /></div>
+          <div class="field"><label for="eventEmail">Kilpailun sähköposti</label><input id="eventEmail" type="email" /></div>
+          <div class="field"><label for="eventWebsite">Kilpailun verkkosivut</label><input id="eventWebsite" type="text" placeholder="https://..." /></div>
+        </div>
+      </section>
+
+      <section class="form-section">
+        <h2>3. Kilpailunjohtajat ja yhteystiedot</h2>
+        <div class="form-grid">
+          <div class="field"><label for="tdName">TD nimi</label><input id="tdName" type="text" /></div>
+          <div class="field"><label for="tdPdga">TD PDGA-numero</label><input id="tdPdga" type="number" /></div>
+          <div class="field"><label for="tdEmail">TD sähköposti</label><input id="tdEmail" type="email" /></div>
+          <div class="field"><label for="tdPhone">TD puhelin</label><input id="tdPhone" type="tel" /></div>
+          <div class="field"><label for="assistantTdName">Apu-TD nimi</label><input id="assistantTdName" type="text" /></div>
+          <div class="field"><label for="assistantTdPdga">Apu-TD PDGA-numero</label><input id="assistantTdPdga" type="number" /></div>
+          <div class="field"><label for="assistantTdEmail">Apu-TD sähköposti</label><input id="assistantTdEmail" type="email" /></div>
+          <div class="field"><label for="assistantTdPhone">Apu-TD puhelin</label><input id="assistantTdPhone" type="tel" /></div>
+          <div class="field"><label for="moreAssistants">Muut apulaiskilpailunjohtajat</label><textarea id="moreAssistants"></textarea></div>
+        </div>
+      </section>
+
+      <section class="form-section">
+        <h2>4. Aikataulu</h2>
+        <div class="field"><label for="scheduleDraft">Kilpailun alustava aikataulu</label><textarea id="scheduleDraft"></textarea></div>
+      </section>
+
+      <section class="form-section">
+        <h2>5. Kilpailun tyyppi ja luokat</h2>
+        <div>
+          <div class="group-label">Kilpailun tyyppi</div>
+          <div class="choice-group">
+            <label class="choice"><input type="radio" name="eventType" checked /> Yksilökisa</label>
+            <label class="choice"><input type="radio" name="eventType" /> Parifrisbeegolf</label>
+            <label class="choice"><input type="radio" name="eventType" /> Joukkuefrisbeegolf</label>
+          </div>
+        </div>
+        <div>
+          <div class="group-label">Luokkavalinnat</div>
+          <div class="choice-group">
+            <label class="choice"><input type="checkbox" checked /> Pro-luokat (esim. MPO, FPO)</label>
+            <label class="choice"><input type="checkbox" /> Junioriluokat (esim. FJ18, MJ18)</label>
+            <label class="choice"><input type="checkbox" /> Tasorajoitetut amatööriluokat</label>
+            <label class="choice"><input type="checkbox" /> Ikärajoitetut aikuisten amatööriluokat</label>
+            <label class="choice"><input type="checkbox" /> Rating-luokat (Gold/Blue/White/Red/Green/Purple)</label>
+            <label class="choice"><input type="checkbox" checked /> M-luokkia vastaavat F-luokat tarjotaan</label>
+            <label class="choice"><input type="checkbox" /> Kilpailussa vain nais- ja/tai junioriluokkia</label>
+          </div>
+        </div>
+      </section>
+
+      <section class="form-section">
+        <h2>6. Pros playing am</h2>
+        <div class="choice-group">
+          <label class="choice"><input type="radio" name="prosPlayingAm" checked /> Käytössä</label>
+          <label class="choice"><input type="radio" name="prosPlayingAm" /> Ei käytössä</label>
+        </div>
+        <div class="field"><label for="prosPlayingAmReason">Perustelut, jos ei käytössä</label><textarea id="prosPlayingAmReason"></textarea></div>
+      </section>
+
+      <section class="form-section">
+        <h2>7. Paikallis-/erikoissäännöt</h2>
+        <div class="field">
+          <label for="localRules">Luvanvaraiset erikoissäännöt / paikallissäännöt</label>
+          <textarea id="localRules"></textarea>
+        </div>
+      </section>
+
+      <section class="form-section">
+        <h2>8. Kilpailun maksut ja palkinnot</h2>
+        <div class="form-grid">
+          <div class="field"><label for="entryFees">Osallistumismaksut</label><input id="entryFees" type="text" /></div>
+          <div class="field"><label for="playerPackValue">Pelaajapaketin sisältö ja arvo</label><input id="playerPackValue" type="text" /></div>
+          <div class="field"><label for="extraBenefits">Muu hyödyke ja arvo</label><input id="extraBenefits" type="text" /></div>
+          <div class="field"><label for="payoutPercentage">Payout %</label><input id="payoutPercentage" type="number" min="0" max="100" /></div>
+          <div class="field"><label for="sideCompetitions">Oheiskilpailut tai arvonnat ja palkinnot</label><textarea id="sideCompetitions"></textarea></div>
+        </div>
+        <div class="choice-group">
+          <label class="choice"><input type="radio" name="hasPlayerPack" checked /> Osallistumismaksuun kuuluu pelaajapaketti</label>
+          <label class="choice"><input type="radio" name="hasPlayerPack" /> Ei pelaajapakettia</label>
+        </div>
+      </section>
+
+      <section class="form-section">
+        <h2>9. Fasiliteetit</h2>
+        <div class="form-grid">
+          <div class="field"><label for="basketModels">Maalikorimallit</label><input id="basketModels" type="text" /></div>
+          <div class="field"><label for="teeMaterials">Heittoalustan materiaalit</label><input id="teeMaterials" type="text" /></div>
+          <div class="field"><label for="foodNearby">Lähimmät ruokailupaikat</label><input id="foodNearby" type="text" /></div>
+          <div class="field"><label for="wcInfo">WC / saniteettitilat</label>
+            <select id="wcInfo"><option>Kyllä</option><option>Ei</option><option>Muu</option></select>
+          </div>
+        </div>
+        <div class="choice-group">
+          <label class="choice"><input type="checkbox" checked /> Kannustetaan saapumaan julkisilla / kevyellä liikenteellä / kimppakyydeillä</label>
+          <label class="choice"><input type="checkbox" checked /> Kilpailukeskus käytössä</label>
+        </div>
+      </section>
+
+      <section class="form-section">
+        <h2>10. Hakemuksen tarkistaminen ja lähettäminen</h2>
+        <div class="field"><label for="additionalInfo">Muita lisätietoja</label><textarea id="additionalInfo"></textarea></div>
+        <div class="choice-group">
+          <label class="choice"><input type="checkbox" checked /> Vahvistan tietojen olevan parhaani mukaan oikein.</label>
+          <label class="choice"><input type="checkbox" checked /> Hyväksyn PDGA-järjestelmään syötettävät pakolliset tiedot.</label>
+          <label class="choice"><input type="checkbox" checked /> Järjestäjällä on päätös kilpailun hakemisesta.</label>
+        </div>
+        <div class="form-grid">
+          <div class="field"><label for="signatureName">Nimi (TD tai vastuuhenkilö)</label><input id="signatureName" type="text" /></div>
+          <div class="field"><label for="signatureDate">Päiväys</label><input id="signatureDate" type="date" /></div>
+        </div>
+      </section>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeNewApplicationModal()">Peruuta</button>
+        <button type="button" class="btn btn-ghost" onclick="saveApplicationDraft()">Tallenna luonnos</button>
+        <button type="submit" class="btn btn-primary">Lähetä hakemus</button>
+      </div>
+    </form>
+  </div>
+</div>
 
 <div id="toast"></div>
 
@@ -4018,6 +4364,33 @@ function showToast(msg) {
   t._timer = setTimeout(() => t.classList.remove('show'), 2600);
 }
 
+function openNewApplicationModal() {
+  const modal = document.getElementById('applicationModal');
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeNewApplicationModal() {
+  const modal = document.getElementById('applicationModal');
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+}
+
+function dismissNewApplicationModal(event) {
+  if (event.target.id === 'applicationModal') closeNewApplicationModal();
+}
+
+function saveApplicationDraft() {
+  showToast('Luonnos tallennettu (mockup).');
+}
+
+function submitApplicationMockup() {
+  closeNewApplicationModal();
+  showToast('Hakemus lähetetty (mockup).');
+}
+
 /* ===================================================
    SIDEBAR TOGGLE (mobile)
    =================================================== */
@@ -4029,6 +4402,10 @@ function closeSidebar() {
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('overlay').classList.remove('open');
 }
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeNewApplicationModal();
+});
 
 /* ===================================================
    INIT
