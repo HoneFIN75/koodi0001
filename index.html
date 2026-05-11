@@ -515,6 +515,9 @@
 <!-- ── Sidebar ───────────────────────────────────────── -->
 <nav id="sidebar">
   <div class="sidebar-section-label">Navigaatio</div>
+  <div class="nav-item" id="nav-etusivu" onclick="navigate('etusivu')">
+    <span class="nav-icon">🏠</span> Etusivu
+  </div>
   <div class="nav-item" id="nav-hakemukset" onclick="navigate('hakemukset')">
     <span class="nav-icon">📋</span> Hakemukset
   </div>
@@ -538,6 +541,32 @@
 
 <!-- ── Main Content ──────────────────────────────────── -->
 <main id="main">
+
+  <!-- ETUSIVU VIEW -->
+  <div class="view" id="view-etusivu">
+    <div class="section-header">
+      <h1 class="section-title">Etusivu</h1>
+      <span style="font-size:13px;color:var(--clr-muted)">KilpailuKalenteri-prototyypin yhteenveto</span>
+    </div>
+    <div class="card">
+      <h3 style="margin:0 0 10px 0;color:var(--clr-text)">Mikä tämä prototyyppi on?</h3>
+      <p style="margin:0;line-height:1.7;color:#374151">
+        KilpailuKalenteri on selainkäyttöinen käyttöliittymäprototyyppi kilpailujen hakemusten hallintaan ja
+        julkiseen näkyvyyteen. Sovellus demonstroi roolipohjaista näkymää, hakemusten tiloja sekä eri tapoja
+        tarkastella julkisia kilpailuja ilman backend-riippuvuuksia.
+      </p>
+    </div>
+    <div class="card">
+      <h3 style="margin:0 0 12px 0;color:var(--clr-text)">Navigaation osiot lyhyesti</h3>
+      <div style="display:grid;gap:10px">
+        <div><strong>Etusivu</strong> – Yleisnäkymä prototyypistä ja navigaation sisällöstä.</div>
+        <div><strong>Hakemukset</strong> – Työrooleille tarkoitettu näkymä hakemusten käsittelyyn ja tietojen tarkasteluun.</div>
+        <div><strong>Kalenteri</strong> – Julkiset ja hyväksytyt kilpailut aikajärjestyksessä korttinäkymänä.</div>
+        <div><strong>Lista</strong> – Tiivis taulukkonäkymä julkisista kilpailuista.</div>
+        <div><strong>Kartta</strong> – Kilpailut paikkakunnittain karttapohjaisessa näkymässä (placeholder).</div>
+      </div>
+    </div>
+  </div>
 
   <!-- HAKEMUKSET VIEW -->
   <div class="view" id="view-hakemukset">
@@ -748,7 +777,7 @@ const CITY_POSITIONS = {
    STATE
    =================================================== */
 let currentRole    = 'admin';
-let currentView    = 'hakemukset';
+let currentView    = 'etusivu';
 let selectedAppId  = null;
 let filteredApps   = [...APPLICATIONS];
 
@@ -771,17 +800,17 @@ function applyRole(role) {
   const hakNavItem = document.getElementById('nav-hakemukset');
   if (isWorkRole(role)) {
     hakNavItem.style.display = 'flex';
-    navigate('hakemukset');
   } else {
     hakNavItem.style.display = 'none';
-    navigate('kalenteri');
   }
+  navigate('etusivu');
 }
 
 /* ===================================================
    NAVIGATION
    =================================================== */
 const VIEW_TITLES = {
+  etusivu:    'Etusivu',
   hakemukset: 'Hakemukset',
   kalenteri:  'Kalenteri',
   lista:      'Lista',
