@@ -4366,6 +4366,11 @@ function showToast(msg) {
 
 function openNewApplicationModal() {
   const modal = document.getElementById('applicationModal');
+  const signatureDateInput = document.getElementById('signatureDate');
+  const today = new Date().toISOString().split('T')[0];
+  signatureDateInput.setAttribute('min', '2025-01-01');
+  signatureDateInput.setAttribute('max', today);
+  if (!signatureDateInput.value) signatureDateInput.value = today;
   modal.classList.add('open');
   modal.setAttribute('aria-hidden', 'false');
   document.body.style.overflow = 'hidden';
