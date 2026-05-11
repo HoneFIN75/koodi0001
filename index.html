@@ -455,6 +455,19 @@
     .map-popup-item:last-child { border-bottom: none; }
     .map-popup-item .pname { font-weight: 600; }
     .map-popup-item .pdate { color: var(--clr-muted); font-size: 12px; }
+    .map-empty-note {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(255,255,255,.92);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      color: var(--clr-muted);
+      box-shadow: var(--shadow);
+      z-index: 3;
+    }
 
     /* ── Buttons ──────────────────────────────────────── */
     .btn {
@@ -1087,6 +1100,7 @@ function renderMap() {
   const mapArea = document.getElementById('mapArea');
   // Remove old markers
   mapArea.querySelectorAll('.city-marker').forEach(el => el.remove());
+  // Suljetaan aiempi popup, jotta suodatus-/kuukausivaihdossa ei jää vanhaa sisältöä näkyviin.
   closePopup();
 
   const apps = getFilteredPublicApps();
@@ -1094,7 +1108,6 @@ function renderMap() {
   if (!apps.length) {
     const empty = document.createElement('div');
     empty.className = 'map-empty-note';
-    empty.style.cssText = 'position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(255,255,255,.92);padding:10px 14px;border-radius:8px;font-size:13px;color:var(--clr-muted);box-shadow:var(--shadow);z-index:3;';
     empty.textContent = 'Ei kilpailuja valitulla suodatuksella.';
     mapArea.appendChild(empty);
     return;
