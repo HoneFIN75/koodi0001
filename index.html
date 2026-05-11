@@ -558,7 +558,7 @@
       <div class="card detail-card" id="appDetail">
         <div class="detail-empty">
           <span class="empty-icon">📋</span>
-          <p>Valitse hakemus vasemmalta</p>
+          <p>Valitse hakemus</p>
         </div>
       </div>
     </div>
@@ -857,7 +857,7 @@ function selectApp(id) {
 
 function renderAppDetail(app) {
   const panel = document.getElementById('appDetail');
-  if (!app) { panel.innerHTML = '<div class="detail-empty"><span class="empty-icon">📋</span><p>Valitse hakemus vasemmalta</p></div>'; return; }
+  if (!app) { panel.innerHTML = '<div class="detail-empty"><span class="empty-icon">📋</span><p>Valitse hakemus</p></div>'; return; }
 
   const lcIdx = STATUS_TO_LC[app.status] ?? 0;
 
