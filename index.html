@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kilpailukalenteri – Prototyyppi</title>
+  <style>
+    /* ── Reset & Variables ───────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --clr-bg:          #f0f2f5;
+      --clr-surface:     #ffffff;
+      --clr-sidebar:     #1e2a3a;
+      --clr-sidebar-txt: #c9d6e3;
+      --clr-sidebar-act: #3b82f6;
+      --clr-topbar:      #ffffff;
+      --clr-border:      #e2e8f0;
+      --clr-text:        #1a202c;
+      --clr-muted:       #718096;
+
+      /* Status colours */
+      --s-draft:       #9ca3af; /* grey   */
+      --s-submitted:   #60a5fa; /* blue   */
+      --s-review:      #f59e0b; /* amber  */
+      --s-approved:    #22c55e; /* green  */
+      --s-published:   #10b981; /* emerald */
+      --s-rejected:    #ef4444; /* red    */
+
+      --sidebar-w: 220px;
+      --topbar-h:  60px;
+      --radius:    8px;
+      --shadow:    0 1px 3px rgba(0,0,0,.1), 0 1px 2px rgba(0,0,0,.06);
+      --shadow-md: 0 4px 6px rgba(0,0,0,.07), 0 2px 4px rgba(0,0,0,.06);
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--clr-bg);
+      color: var(--clr-text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* ── Top Bar ─────────────────────────────────────── */
+    #topbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      height: var(--topbar-h);
+      background: var(--clr-topbar);
+      border-bottom: 1px solid var(--clr-border);
+      display: flex; align-items: center; gap: 12px;
+      padding: 0 16px;
+      box-shadow: var(--shadow);
+    }
+
+    #hamburger {
+      display: none;
+      background: none; border: none; cursor: pointer;
+      padding: 6px; border-radius: var(--radius);
+      color: var(--clr-text);
+      font-size: 22px;
+      line-height: 1;
+    }
+    #hamburger:hover { background: var(--clr-bg); }
+
+    .app-logo {
+      display: flex; align-items: center; gap: 8px;
+      font-weight: 700; font-size: 17px;
+      color: var(--clr-text);
+      white-space: nowrap;
+    }
+    .app-logo .logo-icon {
+      width: 32px; height: 32px;
+      background: var(--clr-sidebar-act);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 16px;
+    }
+
+    .topbar-spacer { flex: 1; }
+
+    .topbar-view-title {
+      font-size: 15px; font-weight: 600;
+      color: var(--clr-text);
+    }
+
+    /* Role selector */
+    .role-selector-wrap {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .role-label { font-size: 13px; color: var(--clr-muted); }
+    #roleSelect {
+      font-size: 13px; font-weight: 600;
+      border: 1px solid var(--clr-border);
+      border-radius: 6px; padding: 6px 10px;
+      background: var(--clr-bg);
+      color: var(--clr-text);
+      cursor: pointer;
+      outline: none;
+    }
+    #roleSelect:focus { border-color: var(--clr-sidebar-act); }
+
+    .role-badge {
+      display: inline-flex; align-items: center;
+      padding: 4px 10px; border-radius: 20px;
+      font-size: 12px; font-weight: 600;
+      background: #dbeafe; color: #1d4ed8;
+      white-space: nowrap;
+    }
+
+    /* ── Sidebar ──────────────────────────────────────── */
+    #sidebar {
+      position: fixed; top: var(--topbar-h); left: 0; bottom: 0;
+      width: var(--sidebar-w);
+      background: var(--clr-sidebar);
+      display: flex; flex-direction: column;
+      overflow-y: auto;
+      z-index: 90;
+      transition: transform .25s ease;
+    }
+
+    .sidebar-section-label {
+      font-size: 10px; font-weight: 700; letter-spacing: .08em;
+      text-transform: uppercase;
+      color: #4a6080;
+      padding: 20px 16px 6px;
+    }
+
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 16px;
+      border-radius: 6px;
+      margin: 1px 8px;
+      cursor: pointer;
+      color: var(--clr-sidebar-txt);
+      font-size: 14px; font-weight: 500;
+      transition: background .15s, color .15s;
+      user-select: none;
+    }
+    .nav-item .nav-icon { font-size: 18px; min-width: 20px; text-align: center; }
+    .nav-item:hover { background: rgba(255,255,255,.07); color: #fff; }
+    .nav-item.active {
+      background: rgba(59,130,246,.2);
+      color: var(--clr-sidebar-act);
+    }
+    .nav-item.active .nav-icon { color: var(--clr-sidebar-act); }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 16px;
+      border-top: 1px solid rgba(255,255,255,.07);
+      font-size: 12px; color: #4a6080;
+    }
+
+    /* ── Overlay (mobile) ────────────────────────────── */
+    #overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.4);
+      z-index: 85;
+    }
+
+    /* ── Main Content ─────────────────────────────────── */
+    #main {
+      margin-top: var(--topbar-h);
+      margin-left: var(--sidebar-w);
+      min-height: calc(100vh - var(--topbar-h));
+      padding: 24px;
+      transition: margin-left .25s ease;
+    }
+
+    .view { display: none; }
+    .view.active { display: flex; flex-direction: column; gap: 20px; }
+
+    /* ── Shared card ───────────────────────────────────── */
+    .card {
+      background: var(--clr-surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
+    }
+
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .section-title {
+      font-size: 18px; font-weight: 700;
+    }
+
+    /* ── Status Badge ──────────────────────────────────── */
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 9px; border-radius: 20px;
+      font-size: 12px; font-weight: 600;
+    }
+    .badge::before { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; }
+
+    .badge-draft    { background: #f3f4f6; color: #4b5563; }
+    .badge-draft::before    { background: var(--s-draft); }
+    .badge-submitted{ background: #dbeafe; color: #1d4ed8; }
+    .badge-submitted::before{ background: var(--s-submitted); }
+    .badge-review   { background: #fef3c7; color: #92400e; }
+    .badge-review::before   { background: var(--s-review); }
+    .badge-approved { background: #dcfce7; color: #15803d; }
+    .badge-approved::before { background: var(--s-approved); }
+    .badge-published{ background: #d1fae5; color: #065f46; }
+    .badge-published::before{ background: var(--s-published); }
+    .badge-rejected { background: #fee2e2; color: #b91c1c; }
+    .badge-rejected::before { background: var(--s-rejected); }
+
+    /* ── HAKEMUKSET VIEW ───────────────────────────────── */
+    #view-hakemukset .two-col {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .app-list-card { padding: 0; overflow: hidden; }
+    .app-list-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--clr-border);
+      font-size: 15px; font-weight: 700;
+    }
+    .app-list-search {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--clr-border);
+    }
+    .app-list-search input {
+      width: 100%; padding: 7px 10px;
+      border: 1px solid var(--clr-border);
+      border-radius: 6px; font-size: 13px;
+      outline: none; background: var(--clr-bg);
+    }
+    .app-list-search input:focus { border-color: var(--clr-sidebar-act); }
+
+    .app-item {
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--clr-border);
+      cursor: pointer;
+      transition: background .12s;
+      overflow: hidden;
+    }
+    .app-item:last-child { border-bottom: none; }
+    .app-item:hover { background: #f8fafc; }
+    .app-item.selected { background: #eff6ff; border-left: 3px solid var(--clr-sidebar-act); }
+
+    .app-item-top {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 8px; margin-bottom: 4px; flex-wrap: wrap;
+    }
+    .app-item-name { font-size: 14px; font-weight: 600; min-width: 0; flex: 1; }
+    .app-item-meta { font-size: 12px; color: var(--clr-muted); display: flex; gap: 8px; flex-wrap: wrap; }
+    .app-item-meta span { display: flex; align-items: center; gap: 3px; }
+
+    /* Detail panel */
+    .detail-card { padding: 0; overflow: hidden; }
+    .detail-empty {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      min-height: 300px; gap: 12px; color: var(--clr-muted);
+      font-size: 15px;
+    }
+    .detail-empty .empty-icon { font-size: 48px; }
+
+    .detail-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--clr-border);
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+    }
+    .detail-title { font-size: 20px; font-weight: 700; }
+    .detail-sub { font-size: 13px; color: var(--clr-muted); margin-top: 4px; }
+
+    .detail-body { padding: 24px; }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .info-item label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--clr-muted); }
+    .info-item p { font-size: 14px; font-weight: 500; margin-top: 3px; }
+
+    /* Lifecycle stepper */
+    .lifecycle-wrap { margin-bottom: 24px; }
+    .lifecycle-title { font-size: 13px; font-weight: 700; color: var(--clr-muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 12px; }
+    .lifecycle-steps {
+      display: flex; align-items: center; gap: 0;
+      overflow-x: auto; padding-bottom: 4px;
+    }
+    .lc-step {
+      display: flex; flex-direction: column; align-items: center;
+      position: relative; min-width: 90px;
+    }
+    .lc-step:not(:last-child)::after {
+      content: '';
+      position: absolute; top: 14px; left: calc(50% + 14px);
+      width: calc(100% - 28px); height: 2px;
+      background: var(--clr-border);
+      z-index: 0;
+    }
+    .lc-step.done:not(:last-child)::after { background: var(--clr-sidebar-act); }
+    .lc-dot {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700;
+      border: 2px solid var(--clr-border);
+      background: var(--clr-surface);
+      color: var(--clr-muted);
+      position: relative; z-index: 1;
+    }
+    .lc-step.done .lc-dot { background: var(--clr-sidebar-act); border-color: var(--clr-sidebar-act); color: #fff; }
+    .lc-step.current .lc-dot { border-color: var(--clr-sidebar-act); color: var(--clr-sidebar-act); font-size: 10px; }
+    .lc-step.future .lc-dot { border-color: var(--clr-border); }
+    .lc-label { font-size: 10px; font-weight: 600; color: var(--clr-muted); margin-top: 5px; text-align: center; }
+    .lc-step.done .lc-label { color: var(--clr-sidebar-act); }
+    .lc-step.current .lc-label { color: var(--clr-text); font-weight: 700; }
+
+    /* ── KALENTERI VIEW ────────────────────────────────── */
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .cal-card {
+      background: var(--clr-surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 0; overflow: hidden;
+      cursor: pointer;
+      transition: box-shadow .15s, transform .15s;
+    }
+    .cal-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+    .cal-card-banner {
+      height: 6px;
+    }
+    .cal-card-body { padding: 16px; }
+    .cal-card-date { font-size: 12px; font-weight: 700; color: var(--clr-muted); text-transform: uppercase; letter-spacing: .05em; }
+    .cal-card-title { font-size: 16px; font-weight: 700; margin: 4px 0 6px; }
+    .cal-card-meta { font-size: 13px; color: var(--clr-muted); display: flex; flex-direction: column; gap: 3px; }
+    .cal-card-meta span { display: flex; align-items: center; gap: 5px; }
+    .cal-card-footer { padding: 10px 16px; border-top: 1px solid var(--clr-border); display: flex; align-items: center; justify-content: space-between; }
+
+    /* ── LISTA VIEW ────────────────────────────────────── */
+    .list-table { width: 100%; border-collapse: collapse; }
+    .list-table th {
+      text-align: left; padding: 10px 14px;
+      font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+      color: var(--clr-muted);
+      border-bottom: 2px solid var(--clr-border);
+      background: var(--clr-bg);
+    }
+    .list-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--clr-border);
+      font-size: 14px;
+    }
+    .list-table tr:last-child td { border-bottom: none; }
+    .list-table tr:hover td { background: #f8fafc; }
+    .list-table td.name { font-weight: 600; }
+
+    /* ── KARTTA VIEW ───────────────────────────────────── */
+    .map-placeholder {
+      background: linear-gradient(160deg, #dbeafe 0%, #bfdbfe 30%, #e0f2fe 60%, #ccfbf1 100%);
+      border-radius: var(--radius);
+      min-height: 560px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid #93c5fd;
+    }
+    .map-bg-text {
+      position: absolute; bottom: 12px; right: 16px;
+      text-align: right; color: #7db0c0; pointer-events: none;
+    }
+    .map-bg-text .map-icon { font-size: 28px; display: block; margin-bottom: 2px; }
+    .map-bg-text p { font-size: 11px; }
+
+    /* City markers */
+    .city-marker {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      z-index: 2;
+    }
+    .city-dot {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: var(--clr-sidebar-act);
+      border: 3px solid #fff;
+      box-shadow: 0 2px 8px rgba(59,130,246,.5);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; color: #fff;
+      cursor: pointer;
+      transition: transform .15s, box-shadow .15s;
+      position: relative; z-index: 2;
+    }
+    .city-dot:hover { transform: scale(1.15); box-shadow: 0 4px 14px rgba(59,130,246,.6); }
+    .city-label {
+      position: absolute; bottom: -22px; left: 50%;
+      transform: translateX(-50%);
+      white-space: nowrap; font-size: 11px; font-weight: 600;
+      color: #1e3a5f; background: rgba(255,255,255,.85);
+      padding: 1px 5px; border-radius: 3px;
+    }
+
+    /* Popup */
+    .map-popup {
+      display: none;
+      position: absolute;
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: 0 8px 24px rgba(0,0,0,.18);
+      padding: 14px 16px;
+      min-width: 220px;
+      z-index: 10;
+      font-size: 13px;
+    }
+    .map-popup.visible { display: block; }
+    .map-popup h4 { font-size: 14px; font-weight: 700; margin-bottom: 8px; padding-right: 20px; }
+    .map-popup-close {
+      position: absolute; top: 10px; right: 10px;
+      background: none; border: none; cursor: pointer;
+      font-size: 16px; color: var(--clr-muted);
+    }
+    .map-popup-item { padding: 6px 0; border-bottom: 1px solid var(--clr-border); }
+    .map-popup-item:last-child { border-bottom: none; }
+    .map-popup-item .pname { font-weight: 600; }
+    .map-popup-item .pdate { color: var(--clr-muted); font-size: 12px; }
+
+    /* ── Buttons ──────────────────────────────────────── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 16px; border-radius: 6px;
+      font-size: 13px; font-weight: 600;
+      border: none; cursor: pointer;
+      transition: background .15s, transform .1s;
+    }
+    .btn:active { transform: scale(.97); }
+    .btn-primary { background: var(--clr-sidebar-act); color: #fff; }
+    .btn-primary:hover { background: #2563eb; }
+    .btn-ghost { background: transparent; border: 1px solid var(--clr-border); color: var(--clr-text); }
+    .btn-ghost:hover { background: var(--clr-bg); }
+
+    /* ── Toast ───────────────────────────────────────── */
+    #toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      background: #1e2a3a; color: #fff;
+      padding: 10px 20px; border-radius: 8px;
+      font-size: 13px; font-weight: 500;
+      box-shadow: 0 4px 12px rgba(0,0,0,.2);
+      opacity: 0; pointer-events: none;
+      transition: opacity .3s;
+      z-index: 999;
+      white-space: nowrap;
+    }
+    #toast.show { opacity: 1; }
+
+    /* ── Responsive ──────────────────────────────────── */
+    @media (max-width: 900px) {
+      #sidebar {
+        transform: translateX(calc(-1 * var(--sidebar-w)));
+      }
+      #sidebar.open {
+        transform: translateX(0);
+      }
+      #overlay.open { display: block; }
+      #hamburger { display: flex; }
+      #main { margin-left: 0; padding: 16px; overflow-x: hidden; }
+      #view-hakemukset .two-col {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 600px) {
+      :root { --topbar-h: 56px; }
+      .topbar-view-title { display: none; }
+      .role-label { display: none; }
+      .info-grid { grid-template-columns: 1fr 1fr; }
+      .list-table th:nth-child(n+4),
+      .list-table td:nth-child(n+4) { display: none; }
+      .app-item { padding: 10px 12px; }
+      .role-badge { display: none; }
+      #roleSelect { max-width: 110px; font-size: 12px; }
+      .app-logo span { font-size: 14px; }
+      .two-col > * { min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Top Bar ───────────────────────────────────────── -->
+<header id="topbar">
+  <button id="hamburger" onclick="toggleSidebar()" aria-label="Avaa valikko">&#9776;</button>
+  <div class="app-logo">
+    <div class="logo-icon">🏅</div>
+    <span>KilpailuKalenteri</span>
+  </div>
+  <div class="topbar-spacer"></div>
+  <span class="topbar-view-title" id="topbarTitle"></span>
+  <div class="topbar-spacer"></div>
+  <div class="role-selector-wrap">
+    <span class="role-label">Rooli:</span>
+    <select id="roleSelect" onchange="applyRole(this.value)">
+      <option value="admin">Admin</option>
+      <option value="liitto">Liitto</option>
+      <option value="kilpailunjohtaja">Kilpailunjohtaja</option>
+      <option value="kilpailija">Kilpailija</option>
+      <option value="yleiso">Yleisö</option>
+    </select>
+    <span class="role-badge" id="roleBadge">Admin</span>
+  </div>
+</header>
+
+<!-- ── Sidebar ───────────────────────────────────────── -->
+<nav id="sidebar">
+  <div class="sidebar-section-label">Navigaatio</div>
+  <div class="nav-item" id="nav-hakemukset" onclick="navigate('hakemukset')">
+    <span class="nav-icon">📋</span> Hakemukset
+  </div>
+  <div class="nav-item" id="nav-kalenteri" onclick="navigate('kalenteri')">
+    <span class="nav-icon">📅</span> Kalenteri
+  </div>
+  <div class="nav-item" id="nav-lista" onclick="navigate('lista')">
+    <span class="nav-icon">📄</span> Lista
+  </div>
+  <div class="nav-item" id="nav-kartta" onclick="navigate('kartta')">
+    <span class="nav-icon">🗺️</span> Kartta
+  </div>
+
+  <div class="sidebar-footer">
+    Prototyyppi v1<br>
+    <span style="font-size:10px;opacity:.6;">Ei käyttäjähallintaa</span>
+  </div>
+</nav>
+
+<div id="overlay" onclick="closeSidebar()"></div>
+
+<!-- ── Main Content ──────────────────────────────────── -->
+<main id="main">
+
+  <!-- HAKEMUKSET VIEW -->
+  <div class="view" id="view-hakemukset">
+    <div class="section-header">
+      <h1 class="section-title">Hakemukset</h1>
+      <button class="btn btn-primary" onclick="showToast('Uusi hakemus -toiminto tulossa!')">+ Uusi hakemus</button>
+    </div>
+    <div class="two-col">
+      <!-- Left: application list -->
+      <div class="card app-list-card" id="appListPanel">
+        <div class="app-list-header">Hakemuslista</div>
+        <div class="app-list-search">
+          <input type="text" placeholder="🔍  Hae hakemusta…" oninput="filterApps(this.value)" />
+        </div>
+        <div id="appList"></div>
+      </div>
+      <!-- Right: detail panel -->
+      <div class="card detail-card" id="appDetail">
+        <div class="detail-empty">
+          <span class="empty-icon">📋</span>
+          <p>Valitse hakemus vasemmalta</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KALENTERI VIEW -->
+  <div class="view" id="view-kalenteri">
+    <div class="section-header">
+      <h1 class="section-title">Kalenteri</h1>
+      <span style="font-size:13px;color:var(--clr-muted)">Hyväksytyt ja julkiset kilpailut</span>
+    </div>
+    <div class="calendar-grid" id="calendarGrid"></div>
+  </div>
+
+  <!-- LISTA VIEW -->
+  <div class="view" id="view-lista">
+    <div class="section-header">
+      <h1 class="section-title">Lista</h1>
+      <span style="font-size:13px;color:var(--clr-muted)">Tiivis listaus julkisista kilpailuista</span>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table class="list-table">
+        <thead>
+          <tr>
+            <th>Kilpailu</th>
+            <th>Paikkakunta</th>
+            <th>Päivämäärä</th>
+            <th>Laji</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="listTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- KARTTA VIEW -->
+  <div class="view" id="view-kartta">
+    <div class="section-header">
+      <h1 class="section-title">Kartta</h1>
+      <span style="font-size:13px;color:var(--clr-muted)">Kilpailut paikkakunnittain</span>
+    </div>
+    <div class="map-placeholder" id="mapArea">
+      <div class="map-bg-text">
+        <span class="map-icon">🗺️</span>
+        <p>Karttapohja (placeholder)<br>Oikea karttaintegraatio tulossa</p>
+      </div>
+      <!-- City markers injected by JS -->
+      <div id="mapPopup" class="map-popup">
+        <button class="map-popup-close" onclick="closePopup()">✕</button>
+        <h4 id="popupCity"></h4>
+        <div id="popupContent"></div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<div id="toast"></div>
+
+<script>
+/* ===================================================
+   MOCK DATA
+   =================================================== */
+const STATUSES = {
+  draft:     { label: 'Luonnos',      cls: 'badge-draft'    },
+  submitted: { label: 'Lähetetty',    cls: 'badge-submitted'},
+  review:    { label: 'Käsittelyssä', cls: 'badge-review'   },
+  approved:  { label: 'Hyväksytty',   cls: 'badge-approved' },
+  published: { label: 'Julkaistu',    cls: 'badge-published'},
+  rejected:  { label: 'Hylätty',      cls: 'badge-rejected' },
+};
+
+const STATUS_COLORS = {
+  draft:     '#9ca3af',
+  submitted: '#60a5fa',
+  review:    '#f59e0b',
+  approved:  '#22c55e',
+  published: '#10b981',
+  rejected:  '#ef4444',
+};
+
+/* Lifecycle stages – index = 0..4 */
+const LC_STAGES = ['Luonnos', 'Lähetetty', 'Käsittelyssä', 'Hyväksytty', 'Julkaistu'];
+const STATUS_TO_LC = { draft:0, submitted:1, review:2, approved:3, published:4, rejected:2 };
+
+const APPLICATIONS = [
+  {
+    id: 1,
+    name: 'Helsingin Kevätmaraton 2025',
+    city: 'Helsinki',
+    date: '2025-04-26',
+    sport: 'Juoksu',
+    status: 'published',
+    organizer: 'Helsinki Athletics Club',
+    description: 'Perinteinen keväinen kaupunkimaraton Helsingissä.',
+    participants: 1200,
+    contact: 'maraton@hac.fi',
+  },
+  {
+    id: 2,
+    name: 'Tampereen Uintikisat 2025',
+    city: 'Tampere',
+    date: '2025-05-17',
+    sport: 'Uinti',
+    status: 'approved',
+    organizer: 'Tampereen Uimarit',
+    description: 'Kansalliset uintikilpailut Tampereella.',
+    participants: 350,
+    contact: 'kilpailut@tampere-uimarit.fi',
+  },
+  {
+    id: 3,
+    name: 'Oulu Pyöräilycup 2025',
+    city: 'Oulu',
+    date: '2025-06-07',
+    sport: 'Pyöräily',
+    status: 'review',
+    organizer: 'Oulu Cycling Club',
+    description: 'Pohjoisen suurin pyöräilykilpailu.',
+    participants: 500,
+    contact: 'cup@oulu-cycling.fi',
+  },
+  {
+    id: 4,
+    name: 'Turun Suunnistusviikko 2025',
+    city: 'Turku',
+    date: '2025-06-21',
+    sport: 'Suunnistus',
+    status: 'submitted',
+    organizer: 'Turun Suunnistajat',
+    description: 'Viikon mittainen suunnistustapahtuma.',
+    participants: 800,
+    contact: 'viikko@turunsuunnistajat.fi',
+  },
+  {
+    id: 5,
+    name: 'Jyväskylän Voimanostoliiga 2025',
+    city: 'Jyväskylä',
+    date: '2025-07-12',
+    sport: 'Voimanosto',
+    status: 'draft',
+    organizer: 'Jyväskylän Voimailijat',
+    description: 'Kansallinen voimanostoliigan osakilpailu.',
+    participants: 120,
+    contact: 'liiga@jkl-voima.fi',
+  },
+  {
+    id: 6,
+    name: 'Espoo Triathlonfestivaali 2025',
+    city: 'Espoo',
+    date: '2025-08-02',
+    sport: 'Triathlon',
+    status: 'rejected',
+    organizer: 'Espoo Tri Club',
+    description: 'Hakemus hylätty puuttuvien tietojen takia.',
+    participants: 0,
+    contact: 'info@espootri.fi',
+  },
+  {
+    id: 7,
+    name: 'Lahden Hiihtomaraton 2026',
+    city: 'Lahti',
+    date: '2026-02-21',
+    sport: 'Hiihto',
+    status: 'published',
+    organizer: 'Lahden Hiihtoklubi',
+    description: 'Perinteinen talvimaraton Lahden maastoissa.',
+    participants: 2000,
+    contact: 'hiihto@lahdenklubi.fi',
+  },
+];
+
+/* City positions on the placeholder map (% from top-left)
+   Approximate Finnish geography: Oulu=north, Helsinki/Espoo=south */
+const CITY_POSITIONS = {
+  'Helsinki': { left: 62, top: 82 },
+  'Espoo':    { left: 56, top: 84 },
+  'Tampere':  { left: 52, top: 64 },
+  'Turku':    { left: 42, top: 76 },
+  'Oulu':     { left: 55, top: 22 },
+  'Jyväskylä':{ left: 58, top: 50 },
+  'Lahti':    { left: 64, top: 73 },
+};
+
+/* ===================================================
+   STATE
+   =================================================== */
+let currentRole    = 'admin';
+let currentView    = 'hakemukset';
+let selectedAppId  = null;
+let filteredApps   = [...APPLICATIONS];
+
+/* ===================================================
+   ROLE LOGIC
+   =================================================== */
+const WORK_ROLES   = ['admin', 'liitto', 'kilpailunjohtaja'];
+const PUBLIC_ROLES = ['kilpailija', 'yleiso'];
+
+function isWorkRole(role) { return WORK_ROLES.includes(role); }
+
+function applyRole(role) {
+  currentRole = role;
+  const names = {
+    admin: 'Admin', liitto: 'Liitto', kilpailunjohtaja: 'Kilpailunjohtaja',
+    kilpailija: 'Kilpailija', yleiso: 'Yleisö'
+  };
+  document.getElementById('roleBadge').textContent = names[role] || role;
+
+  const hakNavItem = document.getElementById('nav-hakemukset');
+  if (isWorkRole(role)) {
+    hakNavItem.style.display = 'flex';
+    navigate('hakemukset');
+  } else {
+    hakNavItem.style.display = 'none';
+    navigate('kalenteri');
+  }
+}
+
+/* ===================================================
+   NAVIGATION
+   =================================================== */
+const VIEW_TITLES = {
+  hakemukset: 'Hakemukset',
+  kalenteri:  'Kalenteri',
+  lista:      'Lista',
+  kartta:     'Kartta',
+};
+
+function navigate(viewId) {
+  currentView = viewId;
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+  const view = document.getElementById('view-' + viewId);
+  const navEl = document.getElementById('nav-' + viewId);
+  if (view) view.classList.add('active');
+  if (navEl) navEl.classList.add('active');
+
+  document.getElementById('topbarTitle').textContent = VIEW_TITLES[viewId] || '';
+
+  if (viewId === 'kalenteri') renderCalendar();
+  if (viewId === 'lista')     renderList();
+  if (viewId === 'kartta')    renderMap();
+
+  closeSidebar();
+}
+
+/* ===================================================
+   HAKEMUKSET VIEW
+   =================================================== */
+function publicApps() {
+  return APPLICATIONS.filter(a => a.status === 'published' || a.status === 'approved');
+}
+function visibleApps() {
+  return isWorkRole(currentRole) ? APPLICATIONS : publicApps();
+}
+
+function filterApps(query) {
+  const q = query.toLowerCase();
+  filteredApps = visibleApps().filter(a =>
+    a.name.toLowerCase().includes(q) ||
+    a.city.toLowerCase().includes(q) ||
+    a.sport.toLowerCase().includes(q)
+  );
+  renderAppList();
+}
+
+function renderAppList() {
+  const container = document.getElementById('appList');
+  if (!filteredApps.length) {
+    container.innerHTML = '<div style="padding:20px;color:var(--clr-muted);font-size:14px;text-align:center">Ei hakemuksia</div>';
+    return;
+  }
+  container.innerHTML = filteredApps.map(a => `
+    <div class="app-item ${a.id === selectedAppId ? 'selected' : ''}" onclick="selectApp(${a.id})">
+      <div class="app-item-top">
+        <span class="app-item-name">${a.name}</span>
+        ${badgeHTML(a.status)}
+      </div>
+      <div class="app-item-meta">
+        <span>📍 ${a.city}</span>
+        <span>📅 ${formatDate(a.date)}</span>
+        <span>🏅 ${a.sport}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectApp(id) {
+  selectedAppId = id;
+  const app = APPLICATIONS.find(a => a.id === id);
+  renderAppList();
+  renderAppDetail(app);
+}
+
+function renderAppDetail(app) {
+  const panel = document.getElementById('appDetail');
+  if (!app) { panel.innerHTML = '<div class="detail-empty"><span class="empty-icon">📋</span><p>Valitse hakemus vasemmalta</p></div>'; return; }
+
+  const lcIdx = STATUS_TO_LC[app.status] ?? 0;
+
+  const stepsHTML = LC_STAGES.map((s, i) => {
+    let cls = 'future';
+    if (i < lcIdx) cls = 'done';
+    else if (i === lcIdx) cls = 'current';
+    const dot = i < lcIdx ? '✓' : (i === lcIdx ? '●' : String(i + 1));
+    return `<div class="lc-step ${cls}"><div class="lc-dot">${dot}</div><div class="lc-label">${s}</div></div>`;
+  }).join('');
+
+  panel.innerHTML = `
+    <div class="detail-header">
+      <div>
+        <div class="detail-title">${app.name}</div>
+        <div class="detail-sub">Järjestäjä: ${app.organizer} &nbsp;|&nbsp; Yhteyshenkilö: ${app.contact}</div>
+      </div>
+      ${badgeHTML(app.status)}
+    </div>
+    <div class="detail-body">
+      <div class="lifecycle-wrap">
+        <div class="lifecycle-title">Elinkaari</div>
+        <div class="lifecycle-steps">${stepsHTML}</div>
+      </div>
+      <div class="info-grid">
+        <div class="info-item"><label>Paikkakunta</label><p>📍 ${app.city}</p></div>
+        <div class="info-item"><label>Päivämäärä</label><p>📅 ${formatDate(app.date)}</p></div>
+        <div class="info-item"><label>Laji</label><p>🏅 ${app.sport}</p></div>
+        <div class="info-item"><label>Ilmoittautuneita</label><p>👤 ${app.participants > 0 ? app.participants : '—'}</p></div>
+      </div>
+      <div class="info-item" style="margin-bottom:20px">
+        <label>Kuvaus</label>
+        <p style="margin-top:6px;line-height:1.6;color:#374151">${app.description}</p>
+      </div>
+      ${isWorkRole(currentRole) ? `
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="showToast('Muokkaus tulossa!')">✏️ Muokkaa</button>
+          <button class="btn btn-ghost" onclick="showToast('Tilamuutos tulossa!')">🔄 Vaihda tila</button>
+          <button class="btn btn-ghost" onclick="showToast('Kommentointi tulossa!')">💬 Kommentoi</button>
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+/* ===================================================
+   KALENTERI VIEW
+   =================================================== */
+function renderCalendar() {
+  const apps = publicApps().sort((a, b) => new Date(a.date) - new Date(b.date));
+  const grid = document.getElementById('calendarGrid');
+  grid.innerHTML = apps.map(a => `
+    <div class="cal-card" onclick="showToast('Kilpailun tiedot: ${a.name}')">
+      <div class="cal-card-banner" style="background:${STATUS_COLORS[a.status]}"></div>
+      <div class="cal-card-body">
+        <div class="cal-card-date">${formatDateLong(a.date)}</div>
+        <div class="cal-card-title">${a.name}</div>
+        <div class="cal-card-meta">
+          <span>📍 ${a.city}</span>
+          <span>🏅 ${a.sport}</span>
+          <span>👤 ${a.participants} ilmoittautunutta</span>
+        </div>
+      </div>
+      <div class="cal-card-footer">
+        ${badgeHTML(a.status)}
+        <button class="btn btn-ghost" style="padding:4px 10px;font-size:12px" onclick="event.stopPropagation();showToast('Lisätiedot tulossa!')">Lisätiedot →</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ===================================================
+   LISTA VIEW
+   =================================================== */
+function renderList() {
+  const apps = publicApps().sort((a, b) => new Date(a.date) - new Date(b.date));
+  const tbody = document.getElementById('listTableBody');
+  tbody.innerHTML = apps.map(a => `
+    <tr onclick="showToast('Avaa: ${a.name}')" style="cursor:pointer">
+      <td class="name">${a.name}</td>
+      <td>📍 ${a.city}</td>
+      <td>📅 ${formatDate(a.date)}</td>
+      <td>${a.sport}</td>
+      <td>${badgeHTML(a.status)}</td>
+    </tr>
+  `).join('');
+}
+
+/* ===================================================
+   KARTTA VIEW
+   =================================================== */
+function renderMap() {
+  const mapArea = document.getElementById('mapArea');
+  // Remove old markers
+  mapArea.querySelectorAll('.city-marker').forEach(el => el.remove());
+
+  const apps = publicApps();
+  // Group by city
+  const byCity = {};
+  apps.forEach(a => {
+    if (!byCity[a.city]) byCity[a.city] = [];
+    byCity[a.city].push(a);
+  });
+
+  Object.entries(byCity).forEach(([city, cityApps]) => {
+    const pos = CITY_POSITIONS[city];
+    if (!pos) return;
+    const marker = document.createElement('div');
+    marker.className = 'city-marker';
+    marker.style.left = pos.left + '%';
+    marker.style.top  = pos.top  + '%';
+    marker.innerHTML = `
+      <div class="city-dot" onclick="showCityPopup('${city}', ${pos.left}, ${pos.top})" title="${city}: ${cityApps.length} kilpailu(a)">
+        ${cityApps.length}
+      </div>
+      <div class="city-label">${city}</div>
+    `;
+    mapArea.appendChild(marker);
+  });
+}
+
+function showCityPopup(city, leftPct, topPct) {
+  const apps = publicApps().filter(a => a.city === city);
+  document.getElementById('popupCity').textContent = '📍 ' + city;
+  document.getElementById('popupContent').innerHTML = apps.map(a => `
+    <div class="map-popup-item">
+      <div class="pname">${a.name}</div>
+      <div class="pdate">📅 ${formatDate(a.date)} &nbsp; ${badgeHTML(a.status)}</div>
+    </div>
+  `).join('');
+
+  const popup = document.getElementById('mapPopup');
+  popup.classList.add('visible');
+  // Position popup near marker but inside map
+  let left = leftPct + 4;
+  let top  = topPct - 20;
+  if (left > 60) left = leftPct - 28;
+  if (top < 5)   top  = topPct + 5;
+  popup.style.left = left + '%';
+  popup.style.top  = top  + '%';
+}
+
+function closePopup() {
+  document.getElementById('mapPopup').classList.remove('visible');
+}
+
+/* ===================================================
+   HELPERS
+   =================================================== */
+function badgeHTML(status) {
+  const s = STATUSES[status] || { label: status, cls: 'badge-draft' };
+  return `<span class="badge ${s.cls}">${s.label}</span>`;
+}
+
+function formatDate(iso) {
+  const d = new Date(iso);
+  return d.toLocaleDateString('fi-FI', { day:'2-digit', month:'2-digit', year:'numeric' });
+}
+
+function formatDateLong(iso) {
+  const d = new Date(iso);
+  return d.toLocaleDateString('fi-FI', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+/* ===================================================
+   SIDEBAR TOGGLE (mobile)
+   =================================================== */
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+}
+
+/* ===================================================
+   INIT
+   =================================================== */
+(function init() {
+  filteredApps = [...APPLICATIONS];
+  renderAppList();
+  applyRole('admin');   // sets default view + renders sidebar
+})();
+</script>
+</body>
+</html>
