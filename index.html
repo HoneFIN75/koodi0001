@@ -618,8 +618,8 @@
         <button class="btn btn-ghost month-nav-btn" onclick="shiftSelectedMonth(-1)" aria-label="Edellinen kuukausi">←</button>
         <div class="month-label" data-month-label></div>
         <button class="btn btn-ghost month-nav-btn" onclick="shiftSelectedMonth(1)" aria-label="Seuraava kuukausi">→</button>
-        <button class="btn btn-ghost" onclick="showAllUpcoming()">Kaikki tulevat kilpailut</button>
-        <button class="btn btn-ghost" onclick="setCurrentMonthFilter()">Nykyinen kuukausi</button>
+        <button class="btn btn-ghost" onclick="showAllUpcoming()" aria-label="Näytä kaikki tulevat kilpailut">Kaikki tulevat kilpailut</button>
+        <button class="btn btn-ghost" onclick="setCurrentMonthFilter()" aria-label="Palauta nykyinen kuukausi">Nykyinen kuukausi</button>
       </div>
     </div>
     <div class="calendar-grid" id="calendarGrid"></div>
@@ -636,8 +636,8 @@
         <button class="btn btn-ghost month-nav-btn" onclick="shiftSelectedMonth(-1)" aria-label="Edellinen kuukausi">←</button>
         <div class="month-label" data-month-label></div>
         <button class="btn btn-ghost month-nav-btn" onclick="shiftSelectedMonth(1)" aria-label="Seuraava kuukausi">→</button>
-        <button class="btn btn-ghost" onclick="showAllUpcoming()">Kaikki tulevat kilpailut</button>
-        <button class="btn btn-ghost" onclick="setCurrentMonthFilter()">Nykyinen kuukausi</button>
+        <button class="btn btn-ghost" onclick="showAllUpcoming()" aria-label="Näytä kaikki tulevat kilpailut">Kaikki tulevat kilpailut</button>
+        <button class="btn btn-ghost" onclick="setCurrentMonthFilter()" aria-label="Palauta nykyinen kuukausi">Nykyinen kuukausi</button>
       </div>
     </div>
     <div class="card" style="padding:0;overflow:hidden">
@@ -667,8 +667,8 @@
         <button class="btn btn-ghost month-nav-btn" onclick="shiftSelectedMonth(-1)" aria-label="Edellinen kuukausi">←</button>
         <div class="month-label" data-month-label></div>
         <button class="btn btn-ghost month-nav-btn" onclick="shiftSelectedMonth(1)" aria-label="Seuraava kuukausi">→</button>
-        <button class="btn btn-ghost" onclick="showAllUpcoming()">Kaikki tulevat kilpailut</button>
-        <button class="btn btn-ghost" onclick="setCurrentMonthFilter()">Nykyinen kuukausi</button>
+        <button class="btn btn-ghost" onclick="showAllUpcoming()" aria-label="Näytä kaikki tulevat kilpailut">Kaikki tulevat kilpailut</button>
+        <button class="btn btn-ghost" onclick="setCurrentMonthFilter()" aria-label="Palauta nykyinen kuukausi">Nykyinen kuukausi</button>
       </div>
     </div>
     <div class="map-placeholder" id="mapArea">
@@ -1100,7 +1100,7 @@ function renderMap() {
   const mapArea = document.getElementById('mapArea');
   // Remove old markers
   mapArea.querySelectorAll('.city-marker').forEach(el => el.remove());
-  // Suljetaan aiempi popup, jotta suodatus-/kuukausivaihdossa ei jää vanhaa sisältöä näkyviin.
+  // Suljetaan aiempi popup, jotta suodatus- tai kuukausivaihdossa ei jää vanhaa sisältöä näkyviin.
   closePopup();
 
   const apps = getFilteredPublicApps();
@@ -1139,7 +1139,10 @@ function renderMap() {
 
 function showCityPopup(city, leftPct, topPct) {
   const apps = getFilteredPublicApps().filter(a => a.city === city);
-  if (!apps.length) { closePopup(); return; }
+  if (!apps.length) {
+    closePopup();
+    return;
+  }
   document.getElementById('popupCity').textContent = '📍 ' + city;
   document.getElementById('popupContent').innerHTML = apps.map(a => `
     <div class="map-popup-item">
