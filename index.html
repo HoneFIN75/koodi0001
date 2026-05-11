@@ -189,6 +189,34 @@
     .section-title {
       font-size: 18px; font-weight: 700;
     }
+    .section-headline {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .month-filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .month-label {
+      min-width: 140px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--clr-text);
+      text-transform: capitalize;
+    }
+    .month-nav-btn {
+      width: 34px;
+      padding: 0;
+      justify-content: center;
+      font-size: 18px;
+      line-height: 1;
+    }
 
     /* ── Status Badge ──────────────────────────────────── */
     .badge {
@@ -484,6 +512,8 @@
       #roleSelect { max-width: 110px; font-size: 12px; }
       .app-logo span { font-size: 14px; }
       .two-col > * { min-width: 0; }
+      .section-header { align-items: flex-start; }
+      .month-label { min-width: 120px; }
     }
   </style>
 </head>
@@ -567,8 +597,17 @@
   <!-- KALENTERI VIEW -->
   <div class="view" id="view-kalenteri">
     <div class="section-header">
-      <h1 class="section-title">Kalenteri</h1>
-      <span style="font-size:13px;color:var(--clr-muted)">Hyväksytyt ja julkiset kilpailut</span>
+      <div class="section-headline">
+        <h1 class="section-title">Kalenteri</h1>
+        <span style="font-size:13px;color:var(--clr-muted)">Hyväksytyt ja julkiset kilpailut</span>
+      </div>
+      <div class="month-filter-bar">
+        <button class="btn btn-ghost month-nav-btn" onclick="shiftSelectedMonth(-1)" aria-label="Edellinen kuukausi">←</button>
+        <div class="month-label" data-month-label></div>
+        <button class="btn btn-ghost month-nav-btn" onclick="shiftSelectedMonth(1)" aria-label="Seuraava kuukausi">→</button>
+        <button class="btn btn-ghost" onclick="showAllUpcoming()">Kaikki tulevat kilpailut</button>
+        <button class="btn btn-ghost" onclick="setCurrentMonthFilter()">Nykyinen kuukausi</button>
+      </div>
     </div>
     <div class="calendar-grid" id="calendarGrid"></div>
   </div>
@@ -576,8 +615,17 @@
   <!-- LISTA VIEW -->
   <div class="view" id="view-lista">
     <div class="section-header">
-      <h1 class="section-title">Lista</h1>
-      <span style="font-size:13px;color:var(--clr-muted)">Tiivis listaus julkisista kilpailuista</span>
+      <div class="section-headline">
+        <h1 class="section-title">Lista</h1>
+        <span style="font-size:13px;color:var(--clr-muted)">Tiivis listaus julkisista kilpailuista</span>
+      </div>
+      <div class="month-filter-bar">
+        <button class="btn btn-ghost month-nav-btn" onclick="shiftSelectedMonth(-1)" aria-label="Edellinen kuukausi">←</button>
+        <div class="month-label" data-month-label></div>
+        <button class="btn btn-ghost month-nav-btn" onclick="shiftSelectedMonth(1)" aria-label="Seuraava kuukausi">→</button>
+        <button class="btn btn-ghost" onclick="showAllUpcoming()">Kaikki tulevat kilpailut</button>
+        <button class="btn btn-ghost" onclick="setCurrentMonthFilter()">Nykyinen kuukausi</button>
+      </div>
     </div>
     <div class="card" style="padding:0;overflow:hidden">
       <table class="list-table">
@@ -598,8 +646,17 @@
   <!-- KARTTA VIEW -->
   <div class="view" id="view-kartta">
     <div class="section-header">
-      <h1 class="section-title">Kartta</h1>
-      <span style="font-size:13px;color:var(--clr-muted)">Kilpailut paikkakunnittain</span>
+      <div class="section-headline">
+        <h1 class="section-title">Kartta</h1>
+        <span style="font-size:13px;color:var(--clr-muted)">Kilpailut paikkakunnittain</span>
+      </div>
+      <div class="month-filter-bar">
+        <button class="btn btn-ghost month-nav-btn" onclick="shiftSelectedMonth(-1)" aria-label="Edellinen kuukausi">←</button>
+        <div class="month-label" data-month-label></div>
+        <button class="btn btn-ghost month-nav-btn" onclick="shiftSelectedMonth(1)" aria-label="Seuraava kuukausi">→</button>
+        <button class="btn btn-ghost" onclick="showAllUpcoming()">Kaikki tulevat kilpailut</button>
+        <button class="btn btn-ghost" onclick="setCurrentMonthFilter()">Nykyinen kuukausi</button>
+      </div>
     </div>
     <div class="map-placeholder" id="mapArea">
       <div class="map-bg-text">
@@ -751,6 +808,8 @@ let currentRole    = 'admin';
 let currentView    = 'hakemukset';
 let selectedAppId  = null;
 let filteredApps   = [...APPLICATIONS];
+let monthFilterMode = 'month';
+let selectedMonth = startOfMonth(new Date());
 
 /* ===================================================
    ROLE LOGIC
@@ -805,6 +864,73 @@ function navigate(viewId) {
   if (viewId === 'kartta')    renderMap();
 
   closeSidebar();
+}
+
+/* ===================================================
+   KALENTERI/LISTA/KARTTA SUODATUS
+   =================================================== */
+function startOfMonth(date) {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
+}
+
+function parseISODate(iso) {
+  const [year, month, day] = iso.split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
+function isSameMonth(date, monthDate) {
+  return date.getFullYear() === monthDate.getFullYear() &&
+    date.getMonth() === monthDate.getMonth();
+}
+
+function getCurrentMonthLabel() {
+  if (monthFilterMode === 'future') return 'Kaikki tulevat kilpailut';
+  return selectedMonth.toLocaleDateString('fi-FI', { month: 'long', year: 'numeric' });
+}
+
+function updateMonthFilterLabels() {
+  document.querySelectorAll('[data-month-label]').forEach(el => {
+    el.textContent = getCurrentMonthLabel();
+  });
+}
+
+function getFilteredPublicApps() {
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+
+  return publicApps()
+    .filter(a => {
+      const date = parseISODate(a.date);
+      if (monthFilterMode === 'future') return date >= now;
+      return isSameMonth(date, selectedMonth);
+    })
+    .sort((a, b) => parseISODate(a.date) - parseISODate(b.date));
+}
+
+function shiftSelectedMonth(offset) {
+  selectedMonth = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + offset, 1);
+  monthFilterMode = 'month';
+  updateMonthFilterLabels();
+  renderCalendar();
+  renderList();
+  renderMap();
+}
+
+function showAllUpcoming() {
+  monthFilterMode = 'future';
+  updateMonthFilterLabels();
+  renderCalendar();
+  renderList();
+  renderMap();
+}
+
+function setCurrentMonthFilter() {
+  selectedMonth = startOfMonth(new Date());
+  monthFilterMode = 'month';
+  updateMonthFilterLabels();
+  renderCalendar();
+  renderList();
+  renderMap();
 }
 
 /* ===================================================
@@ -907,8 +1033,12 @@ function renderAppDetail(app) {
    KALENTERI VIEW
    =================================================== */
 function renderCalendar() {
-  const apps = publicApps().sort((a, b) => new Date(a.date) - new Date(b.date));
+  const apps = getFilteredPublicApps();
   const grid = document.getElementById('calendarGrid');
+  if (!apps.length) {
+    grid.innerHTML = '<div class="card" style="padding:20px;color:var(--clr-muted);font-size:14px">Ei kilpailuja valitulla suodatuksella.</div>';
+    return;
+  }
   grid.innerHTML = apps.map(a => `
     <div class="cal-card" onclick="showToast('Kilpailun tiedot: ${a.name}')">
       <div class="cal-card-banner" style="background:${STATUS_COLORS[a.status]}"></div>
@@ -933,8 +1063,12 @@ function renderCalendar() {
    LISTA VIEW
    =================================================== */
 function renderList() {
-  const apps = publicApps().sort((a, b) => new Date(a.date) - new Date(b.date));
+  const apps = getFilteredPublicApps();
   const tbody = document.getElementById('listTableBody');
+  if (!apps.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="color:var(--clr-muted)">Ei kilpailuja valitulla suodatuksella.</td></tr>';
+    return;
+  }
   tbody.innerHTML = apps.map(a => `
     <tr onclick="showToast('Avaa: ${a.name}')" style="cursor:pointer">
       <td class="name">${a.name}</td>
@@ -953,8 +1087,19 @@ function renderMap() {
   const mapArea = document.getElementById('mapArea');
   // Remove old markers
   mapArea.querySelectorAll('.city-marker').forEach(el => el.remove());
+  closePopup();
 
-  const apps = publicApps();
+  const apps = getFilteredPublicApps();
+  mapArea.querySelectorAll('.map-empty-note').forEach(el => el.remove());
+  if (!apps.length) {
+    const empty = document.createElement('div');
+    empty.className = 'map-empty-note';
+    empty.style.cssText = 'position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(255,255,255,.92);padding:10px 14px;border-radius:8px;font-size:13px;color:var(--clr-muted);box-shadow:var(--shadow);z-index:3;';
+    empty.textContent = 'Ei kilpailuja valitulla suodatuksella.';
+    mapArea.appendChild(empty);
+    return;
+  }
+
   // Group by city
   const byCity = {};
   apps.forEach(a => {
@@ -980,7 +1125,8 @@ function renderMap() {
 }
 
 function showCityPopup(city, leftPct, topPct) {
-  const apps = publicApps().filter(a => a.city === city);
+  const apps = getFilteredPublicApps().filter(a => a.city === city);
+  if (!apps.length) { closePopup(); return; }
   document.getElementById('popupCity').textContent = '📍 ' + city;
   document.getElementById('popupContent').innerHTML = apps.map(a => `
     <div class="map-popup-item">
@@ -1047,6 +1193,7 @@ function closeSidebar() {
    =================================================== */
 (function init() {
   filteredApps = [...APPLICATIONS];
+  updateMonthFilterLabels();
   renderAppList();
   applyRole('admin');   // sets default view + renders sidebar
 })();
