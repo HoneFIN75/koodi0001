@@ -547,21 +547,80 @@
     .application-form {
       padding: 20px 24px 24px;
       display: grid;
-      gap: 14px;
+      gap: 10px;
     }
     .form-section {
       border: 1px solid #dbe3ef;
       border-radius: 12px;
       background: #fcfdff;
+      overflow: hidden;
+    }
+    /* ── Accordion summary ───────────────────────────── */
+    .form-section > summary {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 13px 16px;
+      cursor: pointer;
+      list-style: none;
+      font-size: 15px;
+      font-weight: 700;
+      color: #0f172a;
+      user-select: none;
+      background: linear-gradient(to right, #f8fbff, #eff6ff);
+      border-bottom: 1px solid transparent;
+      transition: background .15s;
+    }
+    .form-section > summary::-webkit-details-marker { display: none; }
+    .form-section > summary:hover { background: linear-gradient(to right, #eff6ff, #dbeafe); }
+    .form-section[open] > summary { border-bottom-color: #dbe3ef; }
+    .form-section > summary::after {
+      content: '▼';
+      margin-left: auto;
+      font-size: 10px;
+      color: #94a3b8;
+      transition: transform .2s;
+    }
+    .form-section:not([open]) > summary::after { transform: rotate(-90deg); }
+    /* ── Section body ────────────────────────────────── */
+    .section-body {
       padding: 16px;
       display: grid;
       gap: 12px;
     }
-    .form-section h2 {
-      font-size: 16px;
-      font-weight: 800;
-      color: #0f172a;
+    /* ── Step badge ──────────────────────────────────── */
+    .step-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 22px;
+      height: 22px;
+      border-radius: 11px;
+      background: #3b82f6;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 0 5px;
+      flex-shrink: 0;
     }
+    .section-note {
+      font-size: 12px;
+      font-weight: 400;
+      color: #64748b;
+    }
+    /* ── Field hint / inline help ────────────────────── */
+    .field-hint {
+      font-size: 12px;
+      color: #475569;
+      line-height: 1.55;
+      margin: 0;
+    }
+    /* ── Links in form ───────────────────────────────── */
+    .application-form a {
+      color: #2563eb;
+      text-decoration: none;
+    }
+    .application-form a:hover { text-decoration: underline; }
     .form-section p, .form-section li {
       color: #334155;
       font-size: 13px;
@@ -677,7 +736,7 @@
       .modal-head { padding: 16px; }
       .modal-title { font-size: 18px; }
       .application-form { padding: 12px; }
-      .form-section { padding: 12px; }
+      .section-body { padding: 12px; }
       .form-actions { padding: 12px; justify-content: stretch; }
       .form-actions .btn { flex: 1; justify-content: center; }
     }
@@ -880,185 +939,263 @@
   <div class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="applicationModalTitle">
     <div class="modal-head">
       <div>
-        <h1 id="applicationModalTitle" class="modal-title">Suomen frisbeegolfliitto ry - Kilpailuhakemuskaavake 2025-2026</h1>
+        <h1 id="applicationModalTitle" class="modal-title">Suomen Frisbeegolfliitto ry – Kilpailuhakemuskaavake 2025–2026</h1>
         <p class="modal-subtitle">
-          Mockup havainnollistaa kilpailuhakemuksen kokonaisuuden. Täytä olennaiset tiedot ja varmista, että hakemus
-          lähetetään ajoissa sekä liiton vaatimusten mukaisesti.
+          Täytä kaikki kohdat huolellisesti. Avaa tai sulje osio klikkaamalla sen otsikkoa.
+          Lähettämällä hakemuksen sitoudut liiton sääntöihin ja PDGA:n kilpailumääräyksiin.
         </p>
       </div>
       <button class="modal-close" type="button" aria-label="Sulje hakemuslomake" onclick="closeNewApplicationModal()">✕</button>
     </div>
     <form class="application-form" onsubmit="event.preventDefault(); submitApplicationMockup();">
-      <section class="form-section">
-        <h2>Hakemuksen kuvaus / ohjeistus</h2>
-        <ul class="hint-list">
-          <li>Hakemus jätetään viimeistään 5 viikkoa ennen kilpailua.</li>
-          <li>TD:llä ja apu-TD:llä tulee olla voimassa oleva jäsenyys, PDGA-jäsenyys ja toimitsijakoe.</li>
-          <li>Liitto laskuttaa käsittely- ja sanktiointimaksut yleisperiaatteiden mukaisesti jälkikäteen.</li>
-          <li>Hakija sitoutuu PDGA:n sääntöihin sekä liiton kurinpito- ja antidopingvaatimuksiin.</li>
-        </ul>
-      </section>
 
-      <section class="form-section">
-        <h2>Hakijan yhteystiedot</h2>
-        <div class="form-grid">
-          <div class="field"><label for="applicantOrg">Hakijan seura tai yritys</label><input id="applicantOrg" type="text" /></div>
-          <div class="field"><label for="applicantName">Hakijan nimi</label><input id="applicantName" type="text" /></div>
-          <div class="field"><label for="applicantPdga">PDGA-numero</label><input id="applicantPdga" type="number" /></div>
-          <div class="field"><label for="applicantEmail">Hakijan sähköpostiosoite</label><input id="applicantEmail" type="email" /></div>
-          <div class="field"><label for="applicantPhone">Hakijan puhelinnumero</label><input id="applicantPhone" type="tel" /></div>
-          <div class="field"><label for="billingInfo">Laskutusyhteystiedot</label><textarea id="billingInfo"></textarea></div>
+      <!-- OHJEISTUS – always open -->
+      <details class="form-section" open>
+        <summary><span class="step-badge">ℹ</span> Hakemuksen ohjeistus</summary>
+        <div class="section-body">
+          <ul class="hint-list">
+            <li>Hakemus jätetään viimeistään <strong>5 viikkoa</strong> ennen kilpailua.</li>
+            <li>TD:llä ja apu-TD:llä tulee olla voimassa oleva PDGA-jäsenyys sekä suoritettu toimitsijakoe
+              (<a href="https://www.pdga.com/td-certification" target="_blank" rel="noopener">PDGA TD -sertifiointi</a>).</li>
+            <li>Liitto laskuttaa käsittely- ja sanktiointimaksut yleisperiaatteiden mukaisesti jälkikäteen.</li>
+            <li>Hakija sitoutuu <a href="https://www.pdga.com/rules" target="_blank" rel="noopener">PDGA:n kilpailumääräyksiin</a>
+              sekä <a href="https://sfgolf.fi" target="_blank" rel="noopener">SFG:n kurinpito- ja antidopingvaatimuksiin</a>.</li>
+            <li>PDGA-kilpailut ilmoitetaan myös
+              <a href="https://www.pdga.com/tour/event/add" target="_blank" rel="noopener">PDGA:n järjestelmään</a> – tee ilmoitus hyvissä ajoin.</li>
+            <li>Lisätietoja kilpailujen järjestämisestä:
+              <a href="https://sfgolf.fi/kilpailut" target="_blank" rel="noopener">sfgolf.fi/kilpailut</a>.</li>
+          </ul>
         </div>
-        <div>
-          <div class="group-label">TD- ja apu-TD -kelpoisuus vahvistettu</div>
+      </details>
+
+      <!-- 1. HAKIJAN YHTEYSTIEDOT -->
+      <details class="form-section" open>
+        <summary><span class="step-badge">1</span> Hakijan yhteystiedot</summary>
+        <div class="section-body">
+          <div class="form-grid">
+            <div class="field"><label for="applicantOrg">Hakijan seura tai yritys</label><input id="applicantOrg" type="text" placeholder="esim. Frisbeegolfseura ry" /></div>
+            <div class="field"><label for="applicantName">Hakijan nimi</label><input id="applicantName" type="text" /></div>
+            <div class="field"><label for="applicantPdga">PDGA-numero</label><input id="applicantPdga" type="number" placeholder="esim. 12345" /></div>
+            <div class="field"><label for="applicantEmail">Sähköpostiosoite</label><input id="applicantEmail" type="email" /></div>
+            <div class="field"><label for="applicantPhone">Puhelinnumero</label><input id="applicantPhone" type="tel" /></div>
+            <div class="field"><label for="billingInfo">Laskutusyhteystiedot</label><textarea id="billingInfo" placeholder="Nimi, osoite, e-lasku tai sähköposti"></textarea></div>
+          </div>
+          <div>
+            <div class="group-label">TD- ja apu-TD -kelpoisuus vahvistettu</div>
+            <p class="field-hint">Tarkista kelpoisuus <a href="https://www.pdga.com/members" target="_blank" rel="noopener">PDGA:n jäsenrekisteristä</a>.</p>
+            <div class="choice-group">
+              <label class="choice"><input type="radio" name="tdValidity" checked /> Kyllä</label>
+              <label class="choice"><input type="radio" name="tdValidity" /> Ei</label>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <!-- 2. KILPAILUN PERUSTIEDOT -->
+      <details class="form-section">
+        <summary><span class="step-badge">2</span> Kilpailun perustiedot</summary>
+        <div class="section-body">
+          <div class="form-grid">
+            <div class="field"><label for="eventName">Kilpailun nimi</label><input id="eventName" type="text" /></div>
+            <div class="field"><label for="eventOrganizer">Järjestäjä</label><input id="eventOrganizer" type="text" /></div>
+            <div class="field"><label for="eventCity">Paikkakunta</label><input id="eventCity" type="text" /></div>
+            <div class="field"><label for="eventStart">Aloituspäivämäärä</label><input id="eventStart" type="date" /></div>
+            <div class="field"><label for="eventEnd">Päätöspäivämäärä</label><input id="eventEnd" type="date" /></div>
+            <div class="field"><label for="courseName">Rata</label><input id="courseName" type="text" /></div>
+            <div class="field"><label for="courseAddress">Radan osoite</label><input id="courseAddress" type="text" /></div>
+            <div class="field">
+              <label for="eventTier">Kilpailun taso / <a href="https://www.pdga.com/rules/competition-manual/104" target="_blank" rel="noopener">PDGA tier</a></label>
+              <select id="eventTier">
+                <option>A-tier</option>
+                <option>B-tier</option>
+                <option selected>C-tier</option>
+                <option>L-tier</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="field"><label for="maxPlayers">Pelaajamäärä (max)</label><input id="maxPlayers" type="number" min="1" /></div>
+            <div class="field"><label for="holesPerRound">Väylien määrä / kierros</label><input id="holesPerRound" type="number" min="1" /></div>
+            <div class="field"><label for="roundsPerPlayer">Kierrosten määrä / pelaaja</label><input id="roundsPerPlayer" type="number" min="1" /></div>
+          </div>
           <div class="choice-group">
-            <label class="choice"><input type="radio" name="tdValidity" checked /> Kyllä</label>
-            <label class="choice"><input type="radio" name="tdValidity" /> Ei</label>
+            <label class="choice"><input type="checkbox" checked /> Olen tarkistanut
+              <a href="https://sfgolf.fi/kilpailukalenteri" target="_blank" rel="noopener">alueellisen kilpailukalenterin</a>.</label>
+          </div>
+          <div>
+            <div class="group-label">Haettava kilpailumuoto</div>
+            <div class="choice-group">
+              <label class="choice"><input type="radio" name="appliedCompetition" checked /> Erilliskilpailu</label>
+              <label class="choice"><input type="radio" name="appliedCompetition" /> PDGA-liiga</label>
+              <label class="choice"><input type="radio" name="appliedCompetition" /> Pro-tour</label>
+            </div>
+          </div>
+          <div>
+            <div class="group-label">Luokittelutapa</div>
+            <div class="choice-group">
+              <label class="choice"><input type="radio" name="classMode" checked /> Pro- ja amatööriluokat</label>
+              <label class="choice"><input type="radio" name="classMode" /> Rating-perusteiset luokat</label>
+            </div>
           </div>
         </div>
-      </section>
+      </details>
 
-      <section class="form-section">
-        <h2>1. Kilpailun perustiedot</h2>
-        <div class="form-grid">
-          <div class="field"><label for="eventName">Kilpailun nimi</label><input id="eventName" type="text" /></div>
-          <div class="field"><label for="eventOrganizer">Järjestäjä</label><input id="eventOrganizer" type="text" /></div>
-          <div class="field"><label for="eventCity">Paikkakunta</label><input id="eventCity" type="text" /></div>
-          <div class="field"><label for="eventStart">Kilpailun aloituspäivämäärä</label><input id="eventStart" type="date" /></div>
-          <div class="field"><label for="eventEnd">Kilpailun päätöspäivämäärä</label><input id="eventEnd" type="date" /></div>
-          <div class="field"><label for="courseName">Rata</label><input id="courseName" type="text" /></div>
-          <div class="field"><label for="courseAddress">Radan osoite</label><input id="courseAddress" type="text" /></div>
-          <div class="field"><label for="eventTier">Kilpailun taso / PDGA tier</label>
-            <select id="eventTier"><option>A-tier</option><option>B-tier</option><option selected>C-tier</option><option>L-tier</option><option>Other</option></select>
+      <!-- 3. KILPAILUN YHTEYSTIEDOT (julkaistavat tiedot) -->
+      <details class="form-section">
+        <summary><span class="step-badge">3</span> Kilpailun yhteystiedot <span class="section-note">(julkaistavat tiedot)</span></summary>
+        <div class="section-body">
+          <p class="field-hint">Nämä tiedot julkaistaan kilpailukalenterissa ja PDGA:n sivuilla.</p>
+          <div class="form-grid">
+            <div class="field"><label for="eventPhone">Kilpailun puhelinnumero</label><input id="eventPhone" type="tel" /></div>
+            <div class="field"><label for="eventEmail">Kilpailun sähköposti</label><input id="eventEmail" type="email" /></div>
+            <div class="field"><label for="eventWebsite">Kilpailun verkkosivut</label><input id="eventWebsite" type="url" placeholder="https://..." /></div>
           </div>
-          <div class="field"><label for="maxPlayers">Pelaajamäärä maksimi</label><input id="maxPlayers" type="number" min="1" /></div>
-          <div class="field"><label for="holesPerRound">Väylien määrä per kierros</label><input id="holesPerRound" type="number" min="1" /></div>
-          <div class="field"><label for="roundsPerPlayer">Kierrosten määrä per pelaaja</label><input id="roundsPerPlayer" type="number" min="1" /></div>
         </div>
-        <div class="choice-group">
-          <label class="choice"><input type="checkbox" checked /> Olen tarkistanut alueellisen kilpailukalenterin.</label>
-          <label class="choice"><input type="radio" name="appliedCompetition" checked /> Haettava kilpailu: Erilliskilpailu</label>
-          <label class="choice"><input type="radio" name="appliedCompetition" /> Haettava kilpailu: PDGA-liiga</label>
-          <label class="choice"><input type="radio" name="appliedCompetition" /> Haettava kilpailu: Pro-tour</label>
-          <label class="choice"><input type="radio" name="classMode" checked /> Kilpailuluokat: Pro- ja amatööriluokat</label>
-          <label class="choice"><input type="radio" name="classMode" /> Kilpailuluokat: Rating-perusteiset</label>
+      </details>
+
+      <!-- 4. KILPAILUNJOHTAJAT JA YHTEYSTIEDOT -->
+      <details class="form-section">
+        <summary><span class="step-badge">4</span> Kilpailunjohtajat ja yhteystiedot</summary>
+        <div class="section-body">
+          <div class="form-grid">
+            <div class="field"><label for="tdName">TD:n nimi</label><input id="tdName" type="text" /></div>
+            <div class="field"><label for="tdPdga">TD:n PDGA-numero</label><input id="tdPdga" type="number" /></div>
+            <div class="field"><label for="tdEmail">TD:n sähköposti</label><input id="tdEmail" type="email" /></div>
+            <div class="field"><label for="tdPhone">TD:n puhelin</label><input id="tdPhone" type="tel" /></div>
+            <div class="field"><label for="assistantTdName">Apu-TD:n nimi</label><input id="assistantTdName" type="text" /></div>
+            <div class="field"><label for="assistantTdPdga">Apu-TD:n PDGA-numero</label><input id="assistantTdPdga" type="number" /></div>
+            <div class="field"><label for="assistantTdEmail">Apu-TD:n sähköposti</label><input id="assistantTdEmail" type="email" /></div>
+            <div class="field"><label for="assistantTdPhone">Apu-TD:n puhelin</label><input id="assistantTdPhone" type="tel" /></div>
+            <div class="field"><label for="moreAssistants">Muut apulaiskilpailunjohtajat</label><textarea id="moreAssistants" placeholder="Nimi, PDGA-nro ja rooli – yksi per rivi"></textarea></div>
+          </div>
         </div>
-      </section>
+      </details>
 
-      <section class="form-section">
-        <h2>2. Kilpailun yhteystiedot</h2>
-        <div class="form-grid">
-          <div class="field"><label for="eventPhone">Kilpailun puhelinnumero</label><input id="eventPhone" type="tel" /></div>
-          <div class="field"><label for="eventEmail">Kilpailun sähköposti</label><input id="eventEmail" type="email" /></div>
-          <div class="field"><label for="eventWebsite">Kilpailun verkkosivut</label><input id="eventWebsite" type="text" placeholder="https://..." /></div>
+      <!-- 5. AIKATAULU -->
+      <details class="form-section">
+        <summary><span class="step-badge">5</span> Aikataulu</summary>
+        <div class="section-body">
+          <div class="field">
+            <label for="scheduleDraft">Kilpailun alustava aikataulu</label>
+            <textarea id="scheduleDraft" placeholder="esim. Pe klo 15–18 rekisteröinti, La klo 9 aloitus…"></textarea>
+          </div>
         </div>
-      </section>
+      </details>
 
-      <section class="form-section">
-        <h2>3. Kilpailunjohtajat ja yhteystiedot</h2>
-        <div class="form-grid">
-          <div class="field"><label for="tdName">TD nimi</label><input id="tdName" type="text" /></div>
-          <div class="field"><label for="tdPdga">TD PDGA-numero</label><input id="tdPdga" type="number" /></div>
-          <div class="field"><label for="tdEmail">TD sähköposti</label><input id="tdEmail" type="email" /></div>
-          <div class="field"><label for="tdPhone">TD puhelin</label><input id="tdPhone" type="tel" /></div>
-          <div class="field"><label for="assistantTdName">Apu-TD nimi</label><input id="assistantTdName" type="text" /></div>
-          <div class="field"><label for="assistantTdPdga">Apu-TD PDGA-numero</label><input id="assistantTdPdga" type="number" /></div>
-          <div class="field"><label for="assistantTdEmail">Apu-TD sähköposti</label><input id="assistantTdEmail" type="email" /></div>
-          <div class="field"><label for="assistantTdPhone">Apu-TD puhelin</label><input id="assistantTdPhone" type="tel" /></div>
-          <div class="field"><label for="moreAssistants">Muut apulaiskilpailunjohtajat</label><textarea id="moreAssistants"></textarea></div>
+      <!-- 6. KILPAILUN TYYPPI JA LUOKAT -->
+      <details class="form-section">
+        <summary><span class="step-badge">6</span> Kilpailun tyyppi ja luokat</summary>
+        <div class="section-body">
+          <div>
+            <div class="group-label">Kilpailun tyyppi</div>
+            <div class="choice-group">
+              <label class="choice"><input type="radio" name="eventType" checked /> Yksilökisa</label>
+              <label class="choice"><input type="radio" name="eventType" /> Parifrisbeegolf</label>
+              <label class="choice"><input type="radio" name="eventType" /> Joukkuefrisbeegolf</label>
+            </div>
+          </div>
+          <div>
+            <div class="group-label">Luokkavalinnat</div>
+            <div class="choice-group">
+              <label class="choice"><input type="checkbox" checked /> Pro-luokat (esim. MPO, FPO)</label>
+              <label class="choice"><input type="checkbox" /> Junioriluokat (esim. FJ18, MJ18)</label>
+              <label class="choice"><input type="checkbox" /> Tasorajoitetut amatööriluokat</label>
+              <label class="choice"><input type="checkbox" /> Ikärajoitetut aikuisten amatööriluokat</label>
+              <label class="choice"><input type="checkbox" /> Rating-luokat (Gold/Blue/White/Red/Green/Purple)</label>
+              <label class="choice"><input type="checkbox" checked /> M-luokkia vastaavat F-luokat tarjotaan</label>
+              <label class="choice"><input type="checkbox" /> Kilpailussa vain nais- ja/tai junioriluokkia</label>
+            </div>
+          </div>
         </div>
-      </section>
+      </details>
 
-      <section class="form-section">
-        <h2>4. Aikataulu</h2>
-        <div class="field"><label for="scheduleDraft">Kilpailun alustava aikataulu</label><textarea id="scheduleDraft"></textarea></div>
-      </section>
-
-      <section class="form-section">
-        <h2>5. Kilpailun tyyppi ja luokat</h2>
-        <div>
-          <div class="group-label">Kilpailun tyyppi</div>
+      <!-- 7. PROS PLAYING AM -->
+      <details class="form-section">
+        <summary><span class="step-badge">7</span> Pros Playing Am</summary>
+        <div class="section-body">
+          <p class="field-hint">
+            Pros Playing Am tarkoittaa, että PDGA-pro-rekisteröityneet pelaajat voivat osallistua amatööriluokkiin ilman rahapalkintoja.
+            Lisätietoja: <a href="https://www.pdga.com/rules/competition-manual/200#a-200" target="_blank" rel="noopener">PDGA Competition Manual §200</a>.
+          </p>
           <div class="choice-group">
-            <label class="choice"><input type="radio" name="eventType" checked /> Yksilökisa</label>
-            <label class="choice"><input type="radio" name="eventType" /> Parifrisbeegolf</label>
-            <label class="choice"><input type="radio" name="eventType" /> Joukkuefrisbeegolf</label>
+            <label class="choice"><input type="radio" name="prosPlayingAm" checked /> Käytössä</label>
+            <label class="choice"><input type="radio" name="prosPlayingAm" /> Ei käytössä</label>
+          </div>
+          <div class="field"><label for="prosPlayingAmReason">Perustelut, jos ei käytössä</label><textarea id="prosPlayingAmReason"></textarea></div>
+        </div>
+      </details>
+
+      <!-- 8. PAIKALLIS- JA ERIKOISSÄÄNNÖT -->
+      <details class="form-section">
+        <summary><span class="step-badge">8</span> Paikallis- ja erikoissäännöt</summary>
+        <div class="section-body">
+          <p class="field-hint">
+            Luvanvaraiset erikoissäännöt on hyväksytettävä liitolla etukäteen.
+            Sallitut erikoissäännöt: <a href="https://www.pdga.com/rules/official-rules-disc-golf/801" target="_blank" rel="noopener">PDGA:n sääntökirja §801</a>.
+          </p>
+          <div class="field">
+            <label for="localRules">Paikallissäännöt / luvanvaraiset erikoissäännöt</label>
+            <textarea id="localRules" placeholder="Kuvaa erikoissäännöt selkeästi – yksi sääntö per rivi"></textarea>
           </div>
         </div>
-        <div>
-          <div class="group-label">Luokkavalinnat</div>
+      </details>
+
+      <!-- 9. KILPAILUN MAKSUT JA PALKINNOT -->
+      <details class="form-section">
+        <summary><span class="step-badge">9</span> Kilpailun maksut ja palkinnot</summary>
+        <div class="section-body">
+          <div>
+            <div class="group-label">Pelaajapaketti</div>
+            <div class="choice-group">
+              <label class="choice"><input type="radio" name="hasPlayerPack" checked /> Osallistumismaksuun kuuluu pelaajapaketti</label>
+              <label class="choice"><input type="radio" name="hasPlayerPack" /> Ei pelaajapakettia</label>
+            </div>
+          </div>
+          <div class="form-grid">
+            <div class="field"><label for="entryFees">Osallistumismaksut (€)</label><input id="entryFees" type="text" placeholder="esim. Pro 60 €, Am 45 €" /></div>
+            <div class="field"><label for="playerPackValue">Pelaajapaketin sisältö ja arvo</label><input id="playerPackValue" type="text" /></div>
+            <div class="field"><label for="extraBenefits">Muu hyödyke ja arvo</label><input id="extraBenefits" type="text" /></div>
+            <div class="field"><label for="payoutPercentage">Payout %</label><input id="payoutPercentage" type="number" min="0" max="100" /></div>
+            <div class="field"><label for="sideCompetitions">Oheiskilpailut, arvonnat ja palkinnot</label><textarea id="sideCompetitions"></textarea></div>
+          </div>
+        </div>
+      </details>
+
+      <!-- 10. FACILITEETIT -->
+      <details class="form-section">
+        <summary><span class="step-badge">10</span> Faciliteetit</summary>
+        <div class="section-body">
+          <div class="form-grid">
+            <div class="field"><label for="basketModels">Maalikorimallit</label><input id="basketModels" type="text" /></div>
+            <div class="field"><label for="teeMaterials">Heittoalustan materiaalit</label><input id="teeMaterials" type="text" /></div>
+            <div class="field"><label for="foodNearby">Lähimmät ruokailupaikat</label><input id="foodNearby" type="text" /></div>
+            <div class="field">
+              <label for="wcInfo">WC / saniteettitilat</label>
+              <select id="wcInfo"><option>Kyllä</option><option>Ei</option><option>Muu</option></select>
+            </div>
+          </div>
           <div class="choice-group">
-            <label class="choice"><input type="checkbox" checked /> Pro-luokat (esim. MPO, FPO)</label>
-            <label class="choice"><input type="checkbox" /> Junioriluokat (esim. FJ18, MJ18)</label>
-            <label class="choice"><input type="checkbox" /> Tasorajoitetut amatööriluokat</label>
-            <label class="choice"><input type="checkbox" /> Ikärajoitetut aikuisten amatööriluokat</label>
-            <label class="choice"><input type="checkbox" /> Rating-luokat (Gold/Blue/White/Red/Green/Purple)</label>
-            <label class="choice"><input type="checkbox" checked /> M-luokkia vastaavat F-luokat tarjotaan</label>
-            <label class="choice"><input type="checkbox" /> Kilpailussa vain nais- ja/tai junioriluokkia</label>
+            <label class="choice"><input type="checkbox" checked /> Kannustetaan saapumaan julkisilla / kevyellä liikenteellä / kimppakyydeillä</label>
+            <label class="choice"><input type="checkbox" checked /> Kilpailukeskus käytössä</label>
           </div>
         </div>
-      </section>
+      </details>
 
-      <section class="form-section">
-        <h2>6. Pros playing am</h2>
-        <div class="choice-group">
-          <label class="choice"><input type="radio" name="prosPlayingAm" checked /> Käytössä</label>
-          <label class="choice"><input type="radio" name="prosPlayingAm" /> Ei käytössä</label>
-        </div>
-        <div class="field"><label for="prosPlayingAmReason">Perustelut, jos ei käytössä</label><textarea id="prosPlayingAmReason"></textarea></div>
-      </section>
-
-      <section class="form-section">
-        <h2>7. Paikallis-/erikoissäännöt</h2>
-        <div class="field">
-          <label for="localRules">Luvanvaraiset erikoissäännöt / paikallissäännöt</label>
-          <textarea id="localRules"></textarea>
-        </div>
-      </section>
-
-      <section class="form-section">
-        <h2>8. Kilpailun maksut ja palkinnot</h2>
-        <div class="form-grid">
-          <div class="field"><label for="entryFees">Osallistumismaksut</label><input id="entryFees" type="text" /></div>
-          <div class="field"><label for="playerPackValue">Pelaajapaketin sisältö ja arvo</label><input id="playerPackValue" type="text" /></div>
-          <div class="field"><label for="extraBenefits">Muu hyödyke ja arvo</label><input id="extraBenefits" type="text" /></div>
-          <div class="field"><label for="payoutPercentage">Payout %</label><input id="payoutPercentage" type="number" min="0" max="100" /></div>
-          <div class="field"><label for="sideCompetitions">Oheiskilpailut tai arvonnat ja palkinnot</label><textarea id="sideCompetitions"></textarea></div>
-        </div>
-        <div class="choice-group">
-          <label class="choice"><input type="radio" name="hasPlayerPack" checked /> Osallistumismaksuun kuuluu pelaajapaketti</label>
-          <label class="choice"><input type="radio" name="hasPlayerPack" /> Ei pelaajapakettia</label>
-        </div>
-      </section>
-
-      <section class="form-section">
-        <h2>9. Fasiliteetit</h2>
-        <div class="form-grid">
-          <div class="field"><label for="basketModels">Maalikorimallit</label><input id="basketModels" type="text" /></div>
-          <div class="field"><label for="teeMaterials">Heittoalustan materiaalit</label><input id="teeMaterials" type="text" /></div>
-          <div class="field"><label for="foodNearby">Lähimmät ruokailupaikat</label><input id="foodNearby" type="text" /></div>
-          <div class="field"><label for="wcInfo">WC / saniteettitilat</label>
-            <select id="wcInfo"><option>Kyllä</option><option>Ei</option><option>Muu</option></select>
+      <!-- 11. HAKEMUKSEN TARKISTAMINEN JA LÄHETTÄMINEN -->
+      <details class="form-section" open>
+        <summary><span class="step-badge">11</span> Hakemuksen tarkistaminen ja lähettäminen</summary>
+        <div class="section-body">
+          <div class="field"><label for="additionalInfo">Muita lisätietoja</label><textarea id="additionalInfo"></textarea></div>
+          <div class="choice-group">
+            <label class="choice"><input type="checkbox" checked /> Vahvistan tietojen olevan parhaani mukaan oikein.</label>
+            <label class="choice"><input type="checkbox" checked /> Hyväksyn PDGA-järjestelmään syötettävät pakolliset tiedot.</label>
+            <label class="choice"><input type="checkbox" checked /> Järjestäjällä on päätös kilpailun hakemisesta.</label>
+          </div>
+          <div class="form-grid">
+            <div class="field"><label for="signatureName">Nimi (TD tai vastuuhenkilö)</label><input id="signatureName" type="text" /></div>
+            <div class="field"><label for="signatureDate">Päiväys</label><input id="signatureDate" type="date" /></div>
           </div>
         </div>
-        <div class="choice-group">
-          <label class="choice"><input type="checkbox" checked /> Kannustetaan saapumaan julkisilla / kevyellä liikenteellä / kimppakyydeillä</label>
-          <label class="choice"><input type="checkbox" checked /> Kilpailukeskus käytössä</label>
-        </div>
-      </section>
-
-      <section class="form-section">
-        <h2>10. Hakemuksen tarkistaminen ja lähettäminen</h2>
-        <div class="field"><label for="additionalInfo">Muita lisätietoja</label><textarea id="additionalInfo"></textarea></div>
-        <div class="choice-group">
-          <label class="choice"><input type="checkbox" checked /> Vahvistan tietojen olevan parhaani mukaan oikein.</label>
-          <label class="choice"><input type="checkbox" checked /> Hyväksyn PDGA-järjestelmään syötettävät pakolliset tiedot.</label>
-          <label class="choice"><input type="checkbox" checked /> Järjestäjällä on päätös kilpailun hakemisesta.</label>
-        </div>
-        <div class="form-grid">
-          <div class="field"><label for="signatureName">Nimi (TD tai vastuuhenkilö)</label><input id="signatureName" type="text" /></div>
-          <div class="field"><label for="signatureDate">Päiväys</label><input id="signatureDate" type="date" /></div>
-        </div>
-      </section>
+      </details>
 
       <div class="form-actions">
         <button type="button" class="btn btn-ghost" onclick="closeNewApplicationModal()">Peruuta</button>
@@ -1068,6 +1205,7 @@
     </form>
   </div>
 </div>
+
 
 <div id="toast"></div>
 
