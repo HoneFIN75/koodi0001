@@ -1010,17 +1010,17 @@
       <details class="form-section">
         <summary><span class="step-badge">2</span> Kilpailun perustiedot</summary>
         <div class="section-body">
-          <div class="form-grid">
-            <div class="field"><label for="eventName">Kilpailun nimi</label><input id="eventName" type="text" /></div>
-            <div class="field"><label for="eventOrganizer">Järjestäjä</label><input id="eventOrganizer" type="text" /></div>
-            <div class="field"><label for="eventCity">Paikkakunta</label><input id="eventCity" type="text" /></div>
-            <div class="field"><label for="eventStart">Aloituspäivämäärä</label><input id="eventStart" type="date" /></div>
-            <div class="field"><label for="eventEnd">Päätöspäivämäärä</label><input id="eventEnd" type="date" /></div>
-            <div class="field"><label for="courseName">Rata</label><input id="courseName" type="text" /></div>
-            <div class="field"><label for="courseAddress">Radan osoite</label><input id="courseAddress" type="text" /></div>
+          <div class="form-grid contact-fields">
+            <div class="field"><label for="eventName">Kilpailun nimi</label><input id="eventName" class="sized-control" style="--field-width:40ch" type="text" /></div>
+            <div class="field"><label for="eventOrganizer">Järjestäjä</label><input id="eventOrganizer" class="sized-control" style="--field-width:40ch" type="text" /></div>
+            <div class="field"><label for="eventCity">Paikkakunta</label><input id="eventCity" class="sized-control" style="--field-width:40ch" type="text" /></div>
+            <div class="field"><label for="eventStart">Aloituspäivämäärä</label><input id="eventStart" class="sized-control" style="--field-width:12ch" type="date" /></div>
+            <div class="field"><label for="eventEnd">Päätöspäivämäärä</label><input id="eventEnd" class="sized-control" style="--field-width:12ch" type="date" /></div>
+            <div class="field"><label for="courseName">Rata</label><input id="courseName" class="sized-control" style="--field-width:12ch" type="text" /></div>
+            <div class="field"><label for="courseAddress">Radan osoite</label><textarea id="courseAddress" class="sized-control" style="--field-width:20ch" rows="6"></textarea></div>
             <div class="field">
               <label for="eventTier">Kilpailun taso / <a href="https://www.pdga.com/rules/competition-manual/104" target="_blank" rel="noopener">PDGA tier</a></label>
-              <select id="eventTier">
+              <select id="eventTier" class="sized-control" style="--field-width:12ch">
                 <option>A-tier</option>
                 <option>B-tier</option>
                 <option selected>C-tier</option>
@@ -1033,7 +1033,7 @@
             <div class="field"><label for="roundsPerPlayer">Kierrosten määrä / pelaaja</label><input id="roundsPerPlayer" type="number" min="1" /></div>
           </div>
           <div class="choice-group">
-            <label class="choice"><input type="checkbox" checked /> Olen tarkistanut
+            <label class="choice"><input type="checkbox" /> Olen tarkistanut
               <a href="https://sfgolf.fi/kilpailukalenteri" target="_blank" rel="noopener">alueellisen kilpailukalenterin</a>.</label>
           </div>
           <div>
