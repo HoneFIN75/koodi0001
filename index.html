@@ -516,7 +516,7 @@
     }
     .modal-sheet {
       width: min(1120px, 100%);
-      max-height: calc(100vh - 40px);
+      max-height: calc(100dvh - 40px);
       overflow: auto;
       background: #fff;
       border-radius: 14px;
@@ -562,7 +562,9 @@
       line-height: 1.4;
       max-width: 760px;
     }
+    .modal-head > div { min-width: 0; }
     .modal-close {
+      flex-shrink: 0;
       border: 1px solid var(--clr-border);
       border-radius: 8px;
       background: #fff;
@@ -781,12 +783,12 @@
       .section-header { align-items: flex-start; }
       .month-label { min-width: 120px; }
       .modal-backdrop { padding: 10px; }
-      .modal-sheet { max-height: calc(100vh - 20px); }
+      .modal-sheet { max-height: calc(100dvh - 20px); }
       .modal-head { padding: 16px; }
       .modal-title { font-size: 18px; }
       .application-form { padding: 12px; }
       .section-body { padding: 12px; }
-      .form-actions { padding: 12px; justify-content: stretch; }
+      .form-actions { padding: 12px 12px calc(12px + env(safe-area-inset-bottom)); justify-content: stretch; }
       .form-actions .btn { flex: 1; justify-content: center; }
     }
   </style>
