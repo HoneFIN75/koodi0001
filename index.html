@@ -696,6 +696,20 @@
       gap: 6px;
     }
 
+    /* ── Hakemuksen ohjeistus ────────────────────────── */
+    .guide-body { gap: 8px; }
+    .guide-intro { color: #334155; font-size: 13px; line-height: 1.6; }
+    .guide-h2 { margin: 12px 0 4px; font-size: 14px; font-weight: 700; color: #1e3a5f; border-bottom: 1px solid #dbe3ef; padding-bottom: 4px; }
+    .guide-h3 { margin: 8px 0 2px; font-size: 13px; font-weight: 600; color: #1d4ed8; }
+    .guide-tip { background: #eff6ff; border-left: 3px solid #3b82f6; padding: 8px 12px; border-radius: 0 6px 6px 0; font-size: 13px; color: #1e40af; }
+    .guide-exception { font-size: 12px; color: #64748b; font-style: italic; margin-top: 2px; }
+    .guide-list { margin: 4px 0 0 18px; display: grid; gap: 4px; }
+    .cost-list { list-style: none; margin-left: 0; }
+    .cost-list li { display: flex; gap: 8px; }
+    .cost-list li span { min-width: 60px; color: #64748b; }
+    .guide-contact-list { list-style: none; margin: 6px 0 0 0; display: grid; gap: 10px; }
+    .guide-contact-list li { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; font-size: 13px; line-height: 1.6; }
+
     /* ── Toast ───────────────────────────────────────── */
     #toast {
       position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
@@ -961,18 +975,86 @@
       <!-- OHJEISTUS – always open -->
       <details class="form-section" open>
         <summary><span class="step-badge">ℹ</span> Hakemuksen ohjeistus</summary>
-        <div class="section-body">
-          <ul class="hint-list">
-            <li>Hakemus jätetään viimeistään <strong>5 viikkoa</strong> ennen kilpailua.</li>
-            <li>TD:llä ja apu-TD:llä tulee olla voimassa oleva PDGA-jäsenyys sekä suoritettu toimitsijakoe
-              (<a href="https://www.pdga.com/rules/exam" target="_blank" rel="noopener">PDGA TD -sertifiointi</a>).</li>
-            <li>Liitto laskuttaa käsittely- ja sanktiointimaksut yleisperiaatteiden mukaisesti jälkikäteen.</li>
-            <li>Hakija sitoutuu <a href="https://www.pdga.com/rules" target="_blank" rel="noopener">PDGA:n kilpailumääräyksiin</a>
-              sekä <a href="https://sfgolf.fi" target="_blank" rel="noopener">SFG:n kurinpito- ja antidopingvaatimuksiin</a>.</li>
-            <li>PDGA-kilpailut ilmoitetaan myös
-              <a href="https://www.pdga.com/tour/event/add" target="_blank" rel="noopener">PDGA:n järjestelmään</a> – tee ilmoitus hyvissä ajoin.</li>
-            <li>Lisätietoja kilpailujen järjestämisestä:
-              <a href="https://sfgolf.fi/kilpailut" target="_blank" rel="noopener">sfgolf.fi/kilpailut</a>.</li>
+        <div class="section-body guide-body">
+          <p class="guide-intro">Suomen Frisbeegolfliiton (SFL) alaisen kilpailun järjestäminen vaatii huolellista ennakkosuunnittelua ja virallisen hakuprosessin noudattamista. Tämän oppaan tarkoituksena on auttaa jäsenseuroja ja kilpailunjohtajia (TD) hoitamaan hakuprosessin vaiheet oikeaoppisesti, huomioimaan kustannukset sekä varmistamaan, että kaikki sääntömääräiset velvoitteet täyttyvät.</p>
+
+          <h3 class="guide-h2">Kilpailun hakuprosessi vaiheittain</h3>
+
+          <h4 class="guide-h3">Hakemuksen jättäminen</h4>
+          <p>Jäsenseura (yleensä kilpailunjohtaja eli TD) lähettää hakemuksen virallisella lomakkeella. Suunnitelma on toimitettava liiton hyväksyttäväksi viimeistään <strong>5 viikkoa</strong> ennen kilpailuajankohtaa.</p>
+          <p class="guide-tip">💡 <strong>Vinkki:</strong> Saat lomakejärjestelmästä automaattisen kopion hakemuksestasi sähköpostiisi.</p>
+
+          <h4 class="guide-h3">Käsittely ja tarkennukset</h4>
+          <p>Liitto ottaa hakemuksen käsittelyyn 1–7 vuorokauden kuluessa. Varaudu vastaamaan mahdollisiin täydennyspyyntöihin. Huomioithan, että lopulliseen sanktiointiin voi kulua aikaa, jos hakemus on jätetty hyvissä ajoin.</p>
+
+          <h4 class="guide-h3">Sanktiointi ja Metrix</h4>
+          <p>Järjestösihteeri hoitaa PDGA-sanktioinnin. Tämän jälkeen TD saa sähköpostitse PDGA-käyttäjätunnukset ja ohjeet. Kilpailunjärjestäjän tulee lisätä kilpailu Metrixiin viimeistään tässä vaiheessa.</p>
+
+          <h4 class="guide-h3">Waiverit ja muutokset</h4>
+          <p>TD hakee PDGA:lta mahdolliset poikkeusluvat eli waiverit paikallissääntöjen käyttöön. Tiedot hyväksytyistä waivereista on julkaistava kilpailun infossa Metrixissä. Kaikki kilpailun rakennemuutokset on koordinoitava liiton kanssa.</p>
+
+          <h3 class="guide-h2">Kustannukset ja laskutus (2026)</h3>
+          <p>SFL laskuttaa kilpailumaksut jäsenseuroilta jälkikäteen.</p>
+
+          <h4 class="guide-h3">1. Sanktiointimaksut</h4>
+          <ul class="guide-list cost-list">
+            <li><span>A-tier:</span> <strong>100 €</strong></li>
+            <li><span>B-tier:</span> <strong>75 €</strong></li>
+            <li><span>C-tier:</span> <strong>50 €</strong></li>
+          </ul>
+          <p class="guide-exception">Poikkeus: Jos kilpailu on suunnattu vain naisille ja/tai junioreille, liitto maksaa sanktioinnin.</p>
+
+          <h4 class="guide-h3">2. Kilpailunkäsittelykulut (per osallistuja)</h4>
+          <ul class="guide-list cost-list">
+            <li><span>A-tier:</span> <strong>5,00 €</strong></li>
+            <li><span>B-tier:</span> <strong>4,00 €</strong></li>
+            <li><span>C-tier:</span> <strong>3,00 €</strong></li>
+            <li><span>L-tier:</span> <strong>1,50 €</strong></li>
+          </ul>
+          <p class="guide-exception">Poikkeus: Käsittelykulua ei peritä ainoastaan naisille ja/tai junioreille suunnatuista kilpailuista.</p>
+
+          <h4 class="guide-h3">3. PDGA-liigojen erityismaksut</h4>
+          <p>PDGA-liigoista maksetaan sanktiointimaksun lisäksi pelaajakohtainen maksu ($0,50 / osallistumismaksu). PDGA laskuttaa tämän suoraan järjestäjältä.</p>
+
+          <h3 class="guide-h2">Tärkeät vaatimukset ja ohjeet</h3>
+
+          <h4 class="guide-h3">Toimitsijoiden pätevyys</h4>
+          <p>Kilpailunjohtajalla (TD) ja apu-TD:llä tulee olla:</p>
+          <ul class="guide-list">
+            <li>Voimassa oleva PDGA-jäsenyys.</li>
+            <li>Suoritettu PDGA TD -sertifiointi (toimitsijakoe).</li>
+          </ul>
+
+          <h4 class="guide-h3">Hyödyllisiä linkkejä</h4>
+          <ul class="guide-list">
+            <li><a href="https://sfgolf.fi/kilpailut" target="_blank" rel="noopener">Järjestäjän opas</a></li>
+            <li><a href="https://www.pdga.com/rules" target="_blank" rel="noopener">Virallinen sääntökirja ja kilpailuopas</a></li>
+            <li><a href="https://sfgolf.fi/kilpailut/palkinnot" target="_blank" rel="noopener">Palkinnot ja verotus (tulorekisteri)</a></li>
+            <li><a href="https://sfgolf.fi/antidoping" target="_blank" rel="noopener">Antidoping- ja kurinpitosäännöt</a></li>
+          </ul>
+
+          <h4 class="guide-h3">Huomioitavaa ennen hakuun ryhtymistä</h4>
+          <ul class="guide-list">
+            <li><strong>Ajankohdan valinta:</strong> Tarkista saman alueen muut kilpailut kilpailusuunnittelukalenterista tai ole yhteydessä aluevastaavaan.</li>
+            <li><strong>Dopingtestaus:</strong> Testaus koskee pääasiassa SM-kilpailuja ja Pro-touria. Lue lisää SFL:n antidopingohjelmasta.</li>
+            <li><strong>Sitoutuminen:</strong> Hakija sitoutuu noudattamaan PDGA:n kilpailumääräyksiä sekä SFL:n kurinpito- ja antidopingvaatimuksia.</li>
+          </ul>
+
+          <h3 class="guide-h2">Lisätiedot ja tuki</h3>
+          <p>Mikäli sinulla on kysyttävää hakuprosessista, ota yhteyttä (ma–pe 9–15):</p>
+          <ul class="guide-contact-list">
+            <li>
+              <strong>Toiminnanjohtaja: Anniina Ihamäki</strong><br>
+              <a href="mailto:toiminnanjohtaja@frisbeegolfliitto.fi">toiminnanjohtaja@frisbeegolfliitto.fi</a> · 050 596 0310
+            </li>
+            <li>
+              <strong>Urheilutoimenjohtaja: Tapani Auli</strong><br>
+              <a href="mailto:tapani.aulu@frisbeegolfliitto.fi">tapani.aulu@frisbeegolfliitto.fi</a> · 050 302 7973
+            </li>
+            <li>
+              <strong>Järjestösihteeri: Annika Nyström</strong><br>
+              <a href="mailto:sihteeri@frisbeegolfliitto.fi">sihteeri@frisbeegolfliitto.fi</a> · 050 554 2260
+            </li>
           </ul>
         </div>
       </details>
