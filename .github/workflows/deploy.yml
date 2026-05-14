@@ -28,8 +28,8 @@ jobs:
 
       - name: Inject latest update timestamp
         run: |
-          LAST_UPDATE="$(git log -1 --format=%cd --date=format:'%-d.%-m.%Y %H:%M' "$GITHUB_SHA")"
-          grep -q "__LAST_UPDATE__" index.html
+          LAST_UPDATE="$(git log -1 --format=%cd --date=format:'%d.%m.%Y %H:%M' "$GITHUB_SHA")"
+          grep -q "__LAST_UPDATE__" index.html || { echo "Error: __LAST_UPDATE__ placeholder not found in index.html"; exit 1; }
           sed -i "s|__LAST_UPDATE__|$LAST_UPDATE|g" index.html
 
       - name: Deploy files with rsync
