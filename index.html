@@ -703,6 +703,9 @@
       grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
       gap: 8px 12px;
     }
+    .choice-group--single-column {
+      grid-template-columns: 1fr;
+    }
     .choice-fieldset {
       border: 0;
       margin: 0;
@@ -1140,6 +1143,8 @@
             <div class="field"><label for="eventStart">Aloituspäivämäärä</label><input id="eventStart" class="sized-control" style="--field-width:20ch" type="date" /></div>
             <div class="field"><label for="eventEnd">Päätöspäivämäärä</label><input id="eventEnd" class="sized-control" style="--field-width:20ch" type="date" /></div>
             <div class="field"><label for="courseName">Rata</label><input id="courseName" class="sized-control" style="--field-width:40ch" type="text" /></div>
+            <div class="field"><label for="basketModels">Maalikorimallit</label><input id="basketModels" class="sized-control" style="--field-width:40ch" type="text" /></div>
+            <div class="field"><label for="teeMaterials">Heittoalustan materiaalit</label><input id="teeMaterials" class="sized-control" style="--field-width:40ch" type="text" /></div>
             <div class="field"><label for="billingInfo">Radan osoite</label>
             <div class="field"><label for="applicantPhone">Katuosoite</label><input id="applicantPhone" class="sized-control" style="--field-width:40ch" type="tel" /></div>
             <div class="field"><label for="applicantPhone">Postinumero</label><input id="applicantPhone" class="sized-control" style="--field-width:10ch" type="tel" /></div>
@@ -1332,18 +1337,36 @@
       <details class="form-section">
         <summary><span class="step-badge">10</span> Faciliteetit</summary>
         <div class="section-body">
-          <div class="form-grid">
-            <div class="field"><label for="basketModels">Maalikorimallit</label><input id="basketModels" type="text" /></div>
-            <div class="field"><label for="teeMaterials">Heittoalustan materiaalit</label><input id="teeMaterials" type="text" /></div>
-            <div class="field"><label for="foodNearby">Lähimmät ruokailupaikat</label><input id="foodNearby" type="text" /></div>
-            <div class="field">
-              <label for="wcInfo">WC / saniteettitilat</label>
-              <select id="wcInfo"><option>Kyllä</option><option>Ei</option><option>Muu</option></select>
+          <div class="form-grid form-grid--single-column">
+            <div>
+              <label class="choice"><input type="checkbox" /> Kilpailukeskus käytössä</label>
             </div>
-          </div>
-          <div class="choice-group">
-            <label class="choice"><input type="checkbox" /> Kannustetaan saapumaan julkisilla / kevyellä liikenteellä / kimppakyydeillä</label>
-            <label class="choice"><input type="checkbox" /> Kilpailukeskus käytössä</label>
+            <div class="field">
+              <div class="group-label" id="wcInfoLabel">WC / saniteettitilat</div>
+              <div class="choice-group choice-group--single-column">
+                <label class="choice"><input type="radio" name="wcInfo" value="kylla" /> Kyllä</label>
+                <label class="choice"><input type="radio" name="wcInfo" value="ei" /> Ei</label>
+                <label class="choice"><input type="radio" name="wcInfo" value="muu" /> Muu</label>
+              </div>
+              <label for="wcOther">Muu</label>
+              <input id="wcOther" type="text" aria-describedby="wcInfoLabel" disabled />
+            </div>
+            <div>
+              <label class="choice"><input type="checkbox" /> Kannustetaan saapumaan julkisilla / kevyellä liikenteellä / kimppakyydeillä</label>
+              <p class="field-hint">Jos kilpailuradalle on mahdollista saapua julkisilla ja/tai kevyellä liikenteellä, kannustetaanko osallistujia saapumaan julkisilla, kevyellä liikenteellä tai kimppakyydeillä tarjoamalla infoa eri saapumisvaihtoehdoista?</p>
+            </div>
+            <div class="field">
+              <label for="foodNearby">Lähimmät ruokailupaikat</label>
+              <textarea id="foodNearby" class="sized-control" style="--field-width:40ch;resize:none" rows="10" cols="40"></textarea>
+            </div>
+            <div class="field">
+              <label for="shopsNearby">Lähimmät kaupat ja kioskit</label>
+              <textarea id="shopsNearby" class="sized-control" style="--field-width:40ch;resize:none" rows="10" cols="40"></textarea>
+            </div>
+            <div class="field">
+              <label for="gasStationsNearby">Lähimmät huoltoasemat ja kioskit</label>
+              <textarea id="gasStationsNearby" class="sized-control" style="--field-width:40ch;resize:none" rows="10" cols="40"></textarea>
+            </div>
           </div>
         </div>
       </details>
@@ -4676,6 +4699,14 @@ function showToast(msg) {
   t._timer = setTimeout(() => t.classList.remove('show'), 2600);
 }
 
+function syncWcOtherFieldState() {
+  const wcOtherInput = document.getElementById('wcOther');
+  if (!wcOtherInput) return;
+  const muuSelected = document.querySelector('input[name="wcInfo"][value="muu"]')?.checked;
+  wcOtherInput.disabled = !muuSelected;
+  if (!muuSelected) wcOtherInput.value = '';
+}
+
 function openNewApplicationModal() {
   const modal = document.getElementById('applicationModal');
   const signatureDateInput = document.getElementById('signatureDate');
@@ -4683,6 +4714,7 @@ function openNewApplicationModal() {
   signatureDateInput.setAttribute('min', '2025-01-01');
   signatureDateInput.setAttribute('max', today);
   if (!signatureDateInput.value) signatureDateInput.value = today;
+  syncWcOtherFieldState();
   modal.classList.add('open');
   modal.setAttribute('aria-hidden', 'false');
   document.body.style.overflow = 'hidden';
@@ -4728,6 +4760,10 @@ document.addEventListener('keydown', e => {
    INIT
    =================================================== */
 (function init() {
+  document.querySelectorAll('input[name="wcInfo"]').forEach((radio) => {
+    radio.addEventListener('change', syncWcOtherFieldState);
+  });
+  syncWcOtherFieldState();
   filteredApps = [...APPLICATIONS];
   updateMonthFilterLabels();
   renderAppList();
