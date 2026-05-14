@@ -203,6 +203,12 @@
       gap: 10px;
       flex-wrap: wrap;
     }
+    .update-timestamp {
+      font-size: 11px;
+      color: var(--clr-muted);
+      opacity: .8;
+      white-space: nowrap;
+    }
 
     .month-filter-bar {
       display: flex;
@@ -843,8 +849,11 @@
   <!-- ETUSIVU VIEW -->
   <div class="view" id="view-etusivu">
     <div class="section-header">
-      <h1 class="section-title">Etusivu</h1>
-      <span style="font-size:13px;color:var(--clr-muted)">KilpailuKalenteri-prototyypin yhteenveto</span>
+      <div class="section-headline">
+        <h1 class="section-title">Etusivu</h1>
+        <span style="font-size:13px;color:var(--clr-muted)">KilpailuKalenteri-prototyypin yhteenveto</span>
+      </div>
+      <span class="update-timestamp">Update __LAST_UPDATE__</span>
     </div>
     <div class="card">
       <h3 style="margin:0 0 10px 0;color:var(--clr-text)">Mikä tämä prototyyppi on?</h3>
