@@ -1556,9 +1556,7 @@ const COMPETITIONS_CSV_RAW = `Kilpailun aloituspäivämäärä;Kilpailun päät�
 2026-10-10;2026-10-11;Tampere Autumn Open;C-tier;Tampere;Hämeenpuisto;Tampere Disc Golf ry;Pekka Mäkinen;12345;pekka@tadg.fi;autumn@tadg.fi;https://tadg.fi;72;18;2
 2026-10-17;2026-10-18;Espoo Autumn Masters;C-tier;Espoo;Pitkäjärvi;Disc Golf Espoo;Heikki Salonen;89012;heikki@dge.fi;autumn@dge.fi;https://dge.fi;72;18;2
 2026-10-24;2026-10-25;Helsinki Autumn Disc;C-tier;Helsinki;Rantapuisto;Disc Golf Team Helsinki;Matti Virtanen;23456;matti@dgth.fi;syksy@dgth.fi;https://dgth.fi;72;18;2
-;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;
-`;
+`; /* CSV may contain trailing semicolon-only rows – they are safely filtered out by parseCompetitionsCSV */
 
 /* ===================================================
    CSV PARSER + STATUS ASSIGNMENT
@@ -1566,6 +1564,8 @@ const COMPETITIONS_CSV_RAW = `Kilpailun aloituspäivämäärä;Kilpailun päät�
 const COMPARE_DATE = new Date('2026-05-14');
 
 function parseCompetitionsCSV(csv) {
+  // Split into lines, trim whitespace, and filter out blank lines and
+  // lines consisting only of semicolons (empty trailing rows in source CSV).
   const lines = csv.split('\n').map(l => l.trim()).filter(l => l && !/^[;]+$/.test(l));
   const headers = lines[0].split(';').map(h => h.trim());
   const result = [];
@@ -1578,14 +1578,15 @@ function parseCompetitionsCSV(csv) {
   for (let i = 1; i < lines.length; i++) {
     const parts = lines[i].split(';');
     if (!parts[COLS.name] || !parts[COLS.startDate]) continue;
-    const id = i; // 1-based
+    const id = i; // row index (1-based), used for deterministic status assignment
     const startDate = parts[COLS.startDate].trim();
     const eventDate = parseISODate(startDate);
     const isPast = eventDate <= COMPARE_DATE;
     let status;
     if (isPast) {
-      status = 'published';
+      status = 'published'; // past/held competitions are treated as published
     } else {
+      // Deterministic future split: 10 % draft, 10 % submitted, 10 % approved, 70 % published
       const r = id % 10;
       if (r === 0) status = 'draft';
       else if (r === 1) status = 'submitted';
@@ -1611,9 +1612,8 @@ function parseCompetitionsCSV(csv) {
       rounds: parts[COLS.rounds]?.trim() || '',
       status,
       participants: 0,
-      // Legacy compatibility (sport = tier, contact = email)
+      // Legacy aliases used in shared renderAppList/renderAppDetail helpers
       sport: parts[COLS.tier]?.trim() || '',
-      description: '',
       contact: parts[COLS.email]?.trim() || '',
     });
   }
@@ -1631,9 +1631,10 @@ const TIER_COLORS = {
   'C-tier': '#0891b2',
   'L-tier': '#16a34a',
 };
+const DEFAULT_TIER_COLOR = '#64748b'; // slate grey for unknown/other tiers
 
 function tierColor(tier) {
-  return TIER_COLORS[tier] || '#64748b';
+  return TIER_COLORS[tier] || DEFAULT_TIER_COLOR;
 }
 
 function tierBadgeHTML(tier) {
