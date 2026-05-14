@@ -807,6 +807,66 @@
       .form-actions { padding: 12px 12px calc(12px + env(safe-area-inset-bottom)); justify-content: stretch; }
       .form-actions .btn { flex: 1; justify-content: center; }
     }
+
+    /* ── Tier badges ─────────────────────────────────────── */
+    .tier-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    /* ── Competition details modal ───────────────────────── */
+    .comp-detail-grid {
+      display: grid;
+      gap: 0;
+    }
+    .comp-detail-header {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--clr-border);
+      margin-bottom: 16px;
+    }
+    .comp-detail-header h2 {
+      flex: 1 1 100%;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--clr-text);
+      margin: 0 0 4px 0;
+    }
+    .comp-detail-row {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--clr-border);
+      font-size: 14px;
+    }
+    .comp-detail-row:last-child { border-bottom: 0; }
+    .comp-detail-icon {
+      font-size: 18px;
+      flex-shrink: 0;
+      width: 24px;
+      text-align: center;
+      margin-top: 2px;
+    }
+    .comp-detail-row strong {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--clr-muted);
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      margin-bottom: 2px;
+    }
+    .comp-detail-row a { color: #2563eb; text-decoration: none; }
+    .comp-detail-row a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
@@ -963,9 +1023,9 @@
         <thead>
           <tr>
             <th>Kilpailu</th>
-            <th>Paikkakunta</th>
             <th>Päivämäärä</th>
-            <th>Laji</th>
+            <th>Paikkakunta</th>
+            <th>Taso</th>
             <th>Tila</th>
           </tr>
         </thead>
@@ -1397,6 +1457,18 @@
   </div>
 </div>
 
+<!-- KILPAILUN LISÄTIEDOT MODAL -->
+<div id="competitionDetailsModal" class="modal-backdrop" aria-hidden="true" onclick="dismissCompetitionDetailsModal(event)">
+  <div class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="compDetailTitle" style="max-width:580px">
+    <div class="modal-head">
+      <div>
+        <h1 id="compDetailTitle" class="modal-title">Kilpailun tiedot</h1>
+      </div>
+      <button class="modal-close" type="button" aria-label="Sulje kilpailun tiedot" onclick="closeCompetitionDetailsModal()">✕</button>
+    </div>
+    <div id="compDetailBody" style="padding:24px;overflow-y:auto;max-height:calc(85dvh - 80px)"></div>
+  </div>
+</div>
 
 <div id="toast"></div>
 
@@ -1426,2899 +1498,173 @@ const STATUS_COLORS = {
 const LC_STAGES = ['Luonnos', 'Lähetetty', 'Käsittelyssä', 'Hyväksytty', 'Julkaistu'];
 const STATUS_TO_LC = { draft:0, submitted:1, review:2, approved:3, published:4, rejected:2 };
 
-const APPLICATIONS = [
-  {
-    id: 1,
-    name: 'Turkun YleisurheiluKisat 2026',
-    city: 'Turku',
-    date: '2026-03-01',
-    sport: 'Yleisurheilu',
-    status: 'published',
-    organizer: 'Turku Yleisurheilu Urheilijat',
-    description: 'Turkun perinteinen yleisurheilukisat kerää osallistujia ympäri Suomen.',
-    participants: 1359,
-    contact: 'yleisurheilu@turkuurheilu.fi',
-  },
-  {
-    id: 2,
-    name: 'Oulun MelontaCup 2026',
-    city: 'Oulu',
-    date: '2026-03-04',
-    sport: 'Melonta',
-    status: 'published',
-    organizer: 'Oulu Melonta Urheilijat',
-    description: 'Vuosittainen melonta cup Oulussa. Tervetuloa mukaan!',
-    participants: 278,
-    contact: 'melonta@ouluurheilu.fi',
-  },
-  {
-    id: 3,
-    name: 'Jyväskylän GolfMestaruudet 2026',
-    city: 'Jyväskylä',
-    date: '2026-03-07',
-    sport: 'Golf',
-    status: 'published',
-    organizer: 'Jyväskylä Golf Urheiluseura',
-    description: 'Jyväskylän golfmestaruudet on alueen suurin urheilutapahtuma.',
-    participants: 101,
-    contact: 'golf@jyvaskylaurheilu.fi',
-  },
-  {
-    id: 4,
-    name: 'Lahtin VoimanostoKisat 2026',
-    city: 'Lahti',
-    date: '2026-03-11',
-    sport: 'Voimanosto',
-    status: 'approved',
-    organizer: 'Lahti Voimanosto Club',
-    description: 'Kansallinen voimanosto kisat järjestetään Lahtissa.',
-    participants: 0,
-    contact: 'voimanosto@lahtiurheilu.fi',
-  },
-  {
-    id: 5,
-    name: 'Helsinkin JalkapalloCup 2026',
-    city: 'Helsinki',
-    date: '2026-03-14',
-    sport: 'Jalkapallo',
-    status: 'approved',
-    organizer: 'Helsinki Jalkapallo Urheilijat',
-    description: 'Jalkapallo cup Helsinkissa – kaikentasoisille urheilijoille.',
-    participants: 0,
-    contact: 'jalkapallo@helsinkiurheilu.fi',
-  },
-  {
-    id: 6,
-    name: 'Espoon LentopalloCup 2026',
-    city: 'Espoo',
-    date: '2026-03-17',
-    sport: 'Lentopallo',
-    status: 'approved',
-    organizer: 'Espoo Lentopallo Athletics',
-    description: 'Espoon perinteinen lentopallocup kerää osallistujia ympäri Suomen.',
-    participants: 0,
-    contact: 'lentopallo@espoourheilu.fi',
-  },
-  {
-    id: 7,
-    name: 'Tamperen HiihtoKisat 2026',
-    city: 'Tampere',
-    date: '2026-03-21',
-    sport: 'Hiihto',
-    status: 'review',
-    organizer: 'Tampere Hiihto Seura',
-    description: 'Vuosittainen hiihto kisat Tamperessa. Tervetuloa mukaan!',
-    participants: 0,
-    contact: 'hiihto@tampereurheilu.fi',
-  },
-  {
-    id: 8,
-    name: 'Turkun JuoksuJuoksukisat 2026',
-    city: 'Turku',
-    date: '2026-03-24',
-    sport: 'Juoksu',
-    status: 'review',
-    organizer: 'Turku Juoksu Athletics',
-    description: 'Turkun juoksujuoksukisat on alueen suurin urheilutapahtuma.',
-    participants: 0,
-    contact: 'juoksu@turkuurheilu.fi',
-  },
-  {
-    id: 9,
-    name: 'Oulun UintiKisat 2026',
-    city: 'Oulu',
-    date: '2026-03-27',
-    sport: 'Uinti',
-    status: 'submitted',
-    organizer: 'Oulu Uinti Urheilijat',
-    description: 'Kansallinen uinti kisat järjestetään Oulussa.',
-    participants: 0,
-    contact: 'uinti@ouluurheilu.fi',
-  },
-  {
-    id: 10,
-    name: 'Jyväskylän PyöräilyYmpäriajo 2026',
-    city: 'Jyväskylä',
-    date: '2026-03-31',
-    sport: 'Pyöräily',
-    status: 'submitted',
-    organizer: 'Jyväskylä Pyöräily Athletics',
-    description: 'Pyöräily ympäriajo Jyväskylässa – kaikentasoisille urheilijoille.',
-    participants: 0,
-    contact: 'pyoraily@jyvaskylaurheilu.fi',
-  },
-  {
-    id: 11,
-    name: 'Oulun GolfOpen 2026',
-    city: 'Oulu',
-    date: '2026-04-01',
-    sport: 'Golf',
-    status: 'draft',
-    organizer: 'Oulu Golf Klubi',
-    description: 'Oulun perinteinen golfopen kerää osallistujia ympäri Suomen.',
-    participants: 0,
-    contact: 'golf@ouluurheilu.fi',
-  },
-  {
-    id: 12,
-    name: 'Jyväskylän VoimanostoMestaruudet 2026',
-    city: 'Jyväskylä',
-    date: '2026-04-02',
-    sport: 'Voimanosto',
-    status: 'rejected',
-    organizer: 'Jyväskylä Voimanosto Urheiluseura',
-    description: 'Vuosittainen voimanosto mestaruudet Jyväskylässa. Tervetuloa mukaan!',
-    participants: 0,
-    contact: 'voimanosto@jyvaskylaurheilu.fi',
-  },
-  {
-    id: 13,
-    name: 'Lahtin JalkapalloMestaruudet 2026',
-    city: 'Lahti',
-    date: '2026-04-03',
-    sport: 'Jalkapallo',
-    status: 'published',
-    organizer: 'Lahti Jalkapallo Urheiluseura',
-    description: 'Lahtin jalkapallomestaruudet on alueen suurin urheilutapahtuma.',
-    participants: 1568,
-    contact: 'jalkapallo@lahtiurheilu.fi',
-  },
-  {
-    id: 14,
-    name: 'Helsinkin LentopalloFestival 2026',
-    city: 'Helsinki',
-    date: '2026-04-04',
-    sport: 'Lentopallo',
-    status: 'published',
-    organizer: 'Helsinki Lentopallo Club',
-    description: 'Kansallinen lentopallo festival järjestetään Helsinkissa.',
-    participants: 613,
-    contact: 'lentopallo@helsinkiurheilu.fi',
-  },
-  {
-    id: 15,
-    name: 'Espoon HiihtoMaraton 2026',
-    city: 'Espoo',
-    date: '2026-04-05',
-    sport: 'Hiihto',
-    status: 'published',
-    organizer: 'Espoo Hiihto Club',
-    description: 'Hiihto maraton Espoossa – kaikentasoisille urheilijoille.',
-    participants: 551,
-    contact: 'hiihto@espoourheilu.fi',
-  },
-  {
-    id: 16,
-    name: 'Tamperen JuoksuPuolimaraton 2026',
-    city: 'Tampere',
-    date: '2026-04-06',
-    sport: 'Juoksu',
-    status: 'published',
-    organizer: 'Tampere Juoksu Athletics',
-    description: 'Tamperen perinteinen juoksupuolimaraton kerää osallistujia ympäri Suomen.',
-    participants: 507,
-    contact: 'juoksu@tampereurheilu.fi',
-  },
-  {
-    id: 17,
-    name: 'Turkun UintiCup 2026',
-    city: 'Turku',
-    date: '2026-04-07',
-    sport: 'Uinti',
-    status: 'published',
-    organizer: 'Turku Uinti Urheiluseura',
-    description: 'Vuosittainen uinti cup Turkussa. Tervetuloa mukaan!',
-    participants: 335,
-    contact: 'uinti@turkuurheilu.fi',
-  },
-  {
-    id: 18,
-    name: 'Oulun PyöräilyFestivaali 2026',
-    city: 'Oulu',
-    date: '2026-04-08',
-    sport: 'Pyöräily',
-    status: 'approved',
-    organizer: 'Oulu Pyöräily Urheiluseura',
-    description: 'Oulun pyöräilyfestivaali on alueen suurin urheilutapahtuma.',
-    participants: 0,
-    contact: 'pyoraily@ouluurheilu.fi',
-  },
-  {
-    id: 19,
-    name: 'Jyväskylän SuunnistusViikko 2026',
-    city: 'Jyväskylä',
-    date: '2026-04-09',
-    sport: 'Suunnistus',
-    status: 'approved',
-    organizer: 'Jyväskylä Suunnistus Urheiluseura',
-    description: 'Kansallinen suunnistus viikko järjestetään Jyväskylässa.',
-    participants: 0,
-    contact: 'suunnistus@jyvaskylaurheilu.fi',
-  },
-  {
-    id: 20,
-    name: 'Lahtin TriathlonCup 2026',
-    city: 'Lahti',
-    date: '2026-04-10',
-    sport: 'Triathlon',
-    status: 'approved',
-    organizer: 'Lahti Triathlon Urheiluseura',
-    description: 'Triathlon cup Lahtissa – kaikentasoisille urheilijoille.',
-    participants: 0,
-    contact: 'triathlon@lahtiurheilu.fi',
-  },
-  {
-    id: 21,
-    name: 'Helsinkin TennisTurnaus 2026',
-    city: 'Helsinki',
-    date: '2026-04-11',
-    sport: 'Tennis',
-    status: 'review',
-    organizer: 'Helsinki Tennis Club',
-    description: 'Helsinkin perinteinen tennisturnaus kerää osallistujia ympäri Suomen.',
-    participants: 0,
-    contact: 'tennis@helsinkiurheilu.fi',
-  },
-  {
-    id: 22,
-    name: 'Espoon YleisurheiluGala 2026',
-    city: 'Espoo',
-    date: '2026-04-12',
-    sport: 'Yleisurheilu',
-    status: 'review',
-    organizer: 'Espoo Yleisurheilu Seura',
-    description: 'Vuosittainen yleisurheilu gala Espoossa. Tervetuloa mukaan!',
-    participants: 0,
-    contact: 'yleisurheilu@espoourheilu.fi',
-  },
-  {
-    id: 23,
-    name: 'Tamperen MelontaKoskikisat 2026',
-    city: 'Tampere',
-    date: '2026-04-13',
-    sport: 'Melonta',
-    status: 'submitted',
-    organizer: 'Tampere Melonta Athletics',
-    description: 'Tamperen melontakoskikisat on alueen suurin urheilutapahtuma.',
-    participants: 0,
-    contact: 'melonta@tampereurheilu.fi',
-  },
-  {
-    id: 24,
-    name: 'Turkun GolfCup 2026',
-    city: 'Turku',
-    date: '2026-04-14',
-    sport: 'Golf',
-    status: 'draft',
-    organizer: 'Turku Golf Athletics',
-    description: 'Kansallinen golf cup järjestetään Turkussa.',
-    participants: 0,
-    contact: 'golf@turkuurheilu.fi',
-  },
-  {
-    id: 25,
-    name: 'Oulun VoimanostoCup 2026',
-    city: 'Oulu',
-    date: '2026-04-15',
-    sport: 'Voimanosto',
-    status: 'draft',
-    organizer: 'Oulu Voimanosto Seura',
-    description: 'Voimanosto cup Oulussa – kaikentasoisille urheilijoille.',
-    participants: 0,
-    contact: 'voimanosto@ouluurheilu.fi',
-  },
-  {
-    id: 26,
-    name: 'Jyväskylän JalkapalloFestival 2026',
-    city: 'Jyväskylä',
-    date: '2026-04-16',
-    sport: 'Jalkapallo',
-    status: 'draft',
-    organizer: 'Jyväskylä Jalkapallo Athletics',
-    description: 'Jyväskylän perinteinen jalkapallofestival kerää osallistujia ympäri Suomen.',
-    participants: 0,
-    contact: 'jalkapallo@jyvaskylaurheilu.fi',
-  },
-  {
-    id: 27,
-    name: 'Lahtin LentopalloMestaruudet 2026',
-    city: 'Lahti',
-    date: '2026-04-17',
-    sport: 'Lentopallo',
-    status: 'published',
-    organizer: 'Lahti Lentopallo Club',
-    description: 'Vuosittainen lentopallo mestaruudet Lahtissa. Tervetuloa mukaan!',
-    participants: 1558,
-    contact: 'lentopallo@lahtiurheilu.fi',
-  },
-  {
-    id: 28,
-    name: 'Helsinkin HiihtoCup 2026',
-    city: 'Helsinki',
-    date: '2026-04-18',
-    sport: 'Hiihto',
-    status: 'published',
-    organizer: 'Helsinki Hiihto Klubi',
-    description: 'Helsinkin hiihtocup on alueen suurin urheilutapahtuma.',
-    participants: 259,
-    contact: 'hiihto@helsinkiurheilu.fi',
-  },
-  {
-    id: 29,
-    name: 'Espoon JuoksuCup 2026',
-    city: 'Espoo',
-    date: '2026-04-19',
-    sport: 'Juoksu',
-    status: 'published',
-    organizer: 'Espoo Juoksu Athletics',
-    description: 'Kansallinen juoksu cup järjestetään Espoossa.',
-    participants: 1435,
-    contact: 'juoksu@espoourheilu.fi',
-  },
-  {
-    id: 30,
-    name: 'Tamperen UintiGala 2026',
-    city: 'Tampere',
-    date: '2026-04-20',
-    sport: 'Uinti',
-    status: 'published',
-    organizer: 'Tampere Uinti Klubi',
-    description: 'Uinti gala Tamperessa – kaikentasoisille urheilijoille.',
-    participants: 1566,
-    contact: 'uinti@tampereurheilu.fi',
-  },
-  {
-    id: 31,
-    name: 'Turkun PyöräilyCup 2026',
-    city: 'Turku',
-    date: '2026-04-21',
-    sport: 'Pyöräily',
-    status: 'published',
-    organizer: 'Turku Pyöräily Urheilijat',
-    description: 'Turkun perinteinen pyöräilycup kerää osallistujia ympäri Suomen.',
-    participants: 1877,
-    contact: 'pyoraily@turkuurheilu.fi',
-  },
-  {
-    id: 32,
-    name: 'Oulun SuunnistusMestaruudet 2026',
-    city: 'Oulu',
-    date: '2026-04-22',
-    sport: 'Suunnistus',
-    status: 'approved',
-    organizer: 'Oulu Suunnistus Seura',
-    description: 'Vuosittainen suunnistus mestaruudet Oulussa. Tervetuloa mukaan!',
-    participants: 0,
-    contact: 'suunnistus@ouluurheilu.fi',
-  },
-  {
-    id: 33,
-    name: 'Jyväskylän TriathlonKisat 2026',
-    city: 'Jyväskylä',
-    date: '2026-04-23',
-    sport: 'Triathlon',
-    status: 'approved',
-    organizer: 'Jyväskylä Triathlon Klubi',
-    description: 'Jyväskylän triathlonkisat on alueen suurin urheilutapahtuma.',
-    participants: 0,
-    contact: 'triathlon@jyvaskylaurheilu.fi',
-  },
-  {
-    id: 34,
-    name: 'Lahtin TennisOpen 2026',
-    city: 'Lahti',
-    date: '2026-04-24',
-    sport: 'Tennis',
-    status: 'approved',
-    organizer: 'Lahti Tennis Club',
-    description: 'Kansallinen tennis open järjestetään Lahtissa.',
-    participants: 0,
-    contact: 'tennis@lahtiurheilu.fi',
-  },
-  {
-    id: 35,
-    name: 'Helsinkin YleisurheiluKisat 2026',
-    city: 'Helsinki',
-    date: '2026-04-25',
-    sport: 'Yleisurheilu',
-    status: 'review',
-    organizer: 'Helsinki Yleisurheilu Urheiluseura',
-    description: 'Yleisurheilu kisat Helsinkissa – kaikentasoisille urheilijoille.',
-    participants: 0,
-    contact: 'yleisurheilu@helsinkiurheilu.fi',
-  },
-  {
-    id: 36,
-    name: 'Espoon MelontaCup 2026',
-    city: 'Espoo',
-    date: '2026-04-26',
-    sport: 'Melonta',
-    status: 'review',
-    organizer: 'Espoo Melonta Seura',
-    description: 'Espoon perinteinen melontacup kerää osallistujia ympäri Suomen.',
-    participants: 0,
-    contact: 'melonta@espoourheilu.fi',
-  },
-  {
-    id: 37,
-    name: 'Tamperen GolfMestaruudet 2026',
-    city: 'Tampere',
-    date: '2026-04-27',
-    sport: 'Golf',
-    status: 'submitted',
-    organizer: 'Tampere Golf Urheilijat',
-    description: 'Vuosittainen golf mestaruudet Tamperessa. Tervetuloa mukaan!',
-    participants: 0,
-    contact: 'golf@tampereurheilu.fi',
-  },
-  {
-    id: 38,
-    name: 'Turkun VoimanostoKisat 2026',
-    city: 'Turku',
-    date: '2026-04-28',
-    sport: 'Voimanosto',
-    status: 'submitted',
-    organizer: 'Turku Voimanosto Urheiluseura',
-    description: 'Turkun voimanostokisat on alueen suurin urheilutapahtuma.',
-    participants: 0,
-    contact: 'voimanosto@turkuurheilu.fi',
-  },
-  {
-    id: 39,
-    name: 'Oulun JalkapalloCup 2026',
-    city: 'Oulu',
-    date: '2026-04-29',
-    sport: 'Jalkapallo',
-    status: 'draft',
-    organizer: 'Oulu Jalkapallo Seura',
-    description: 'Kansallinen jalkapallo cup järjestetään Oulussa.',
-    participants: 0,
-    contact: 'jalkapallo@ouluurheilu.fi',
-  },
-  {
-    id: 40,
-    name: 'Jyväskylän LentopalloCup 2026',
-    city: 'Jyväskylä',
-    date: '2026-04-30',
-    sport: 'Lentopallo',
-    status: 'draft',
-    organizer: 'Jyväskylä Lentopallo Urheilijat',
-    description: 'Lentopallo cup Jyväskylässa – kaikentasoisille urheilijoille.',
-    participants: 0,
-    contact: 'lentopallo@jyvaskylaurheilu.fi',
-  },
-  {
-    id: 41,
-    name: 'Jyväskylän JalkapalloCup 2026',
-    city: 'Jyväskylä',
-    date: '2026-05-01',
-    sport: 'Jalkapallo',
-    status: 'published',
-    organizer: 'Jyväskylä Jalkapallo Athletics',
-    description: 'Jyväskylän perinteinen jalkapallocup kerää osallistujia ympäri Suomen.',
-    participants: 1166,
-    contact: 'jalkapallo@jyvaskylaurheilu.fi',
-  },
-  {
-    id: 42,
-    name: 'Lahtin LentopalloCup 2026',
-    city: 'Lahti',
-    date: '2026-05-01',
-    sport: 'Lentopallo',
-    status: 'published',
-    organizer: 'Lahti Lentopallo Club',
-    description: 'Vuosittainen lentopallo cup Lahtissa. Tervetuloa mukaan!',
-    participants: 228,
-    contact: 'lentopallo@lahtiurheilu.fi',
-  },
-  {
-    id: 43,
-    name: 'Helsinkin HiihtoKisat 2026',
-    city: 'Helsinki',
-    date: '2026-05-02',
-    sport: 'Hiihto',
-    status: 'published',
-    organizer: 'Helsinki Hiihto Klubi',
-    description: 'Helsinkin hiihtokisat on alueen suurin urheilutapahtuma.',
-    participants: 1259,
-    contact: 'hiihto@helsinkiurheilu.fi',
-  },
-  {
-    id: 44,
-    name: 'Espoon JuoksuJuoksukisat 2026',
-    city: 'Espoo',
-    date: '2026-05-03',
-    sport: 'Juoksu',
-    status: 'published',
-    organizer: 'Espoo Juoksu Athletics',
-    description: 'Kansallinen juoksu juoksukisat järjestetään Espoossa.',
-    participants: 914,
-    contact: 'juoksu@espoourheilu.fi',
-  },
-  {
-    id: 45,
-    name: 'Tamperen UintiKisat 2026',
-    city: 'Tampere',
-    date: '2026-05-04',
-    sport: 'Uinti',
-    status: 'published',
-    organizer: 'Tampere Uinti Klubi',
-    description: 'Uinti kisat Tamperessa – kaikentasoisille urheilijoille.',
-    participants: 115,
-    contact: 'uinti@tampereurheilu.fi',
-  },
-  {
-    id: 46,
-    name: 'Turkun PyöräilyYmpäriajo 2026',
-    city: 'Turku',
-    date: '2026-05-04',
-    sport: 'Pyöräily',
-    status: 'rejected',
-    organizer: 'Turku Pyöräily Urheilijat',
-    description: 'Turkun perinteinen pyöräilyympäriajo kerää osallistujia ympäri Suomen.',
-    participants: 0,
-    contact: 'pyoraily@turkuurheilu.fi',
-  },
-  {
-    id: 47,
-    name: 'Oulun SuunnistusCup 2026',
-    city: 'Oulu',
-    date: '2026-05-05',
-    sport: 'Suunnistus',
-    status: 'published',
-    organizer: 'Oulu Suunnistus Seura',
-    description: 'Vuosittainen suunnistus cup Oulussa. Tervetuloa mukaan!',
-    participants: 342,
-    contact: 'suunnistus@ouluurheilu.fi',
-  },
-  {
-    id: 48,
-    name: 'Jyväskylän TriathlonIronman 2026',
-    city: 'Jyväskylä',
-    date: '2026-05-06',
-    sport: 'Triathlon',
-    status: 'rejected',
-    organizer: 'Jyväskylä Triathlon Klubi',
-    description: 'Jyväskylän triathlonironman on alueen suurin urheilutapahtuma.',
-    participants: 0,
-    contact: 'triathlon@jyvaskylaurheilu.fi',
-  },
-  {
-    id: 49,
-    name: 'Lahtin TennisMestaruudet 2026',
-    city: 'Lahti',
-    date: '2026-05-07',
-    sport: 'Tennis',
-    status: 'published',
-    organizer: 'Lahti Tennis Club',
-    description: 'Kansallinen tennis mestaruudet järjestetään Lahtissa.',
-    participants: 567,
-    contact: 'tennis@lahtiurheilu.fi',
-  },
-  {
-    id: 50,
-    name: 'Helsinkin YleisurheiluMestaruudet 2026',
-    city: 'Helsinki',
-    date: '2026-05-07',
-    sport: 'Yleisurheilu',
-    status: 'rejected',
-    organizer: 'Helsinki Yleisurheilu Urheiluseura',
-    description: 'Yleisurheilu mestaruudet Helsinkissa – kaikentasoisille urheilijoille.',
-    participants: 0,
-    contact: 'yleisurheilu@helsinkiurheilu.fi',
-  },
-  {
-    id: 51,
-    name: 'Espoon MelontaMestaruudet 2026',
-    city: 'Espoo',
-    date: '2026-05-08',
-    sport: 'Melonta',
-    status: 'published',
-    organizer: 'Espoo Melonta Seura',
-    description: 'Espoon perinteinen melontamestaruudet kerää osallistujia ympäri Suomen.',
-    participants: 231,
-    contact: 'melonta@espoourheilu.fi',
-  },
-  {
-    id: 52,
-    name: 'Tamperen GolfTurnaus 2026',
-    city: 'Tampere',
-    date: '2026-05-09',
-    sport: 'Golf',
-    status: 'rejected',
-    organizer: 'Tampere Golf Urheilijat',
-    description: 'Vuosittainen golf turnaus Tamperessa. Tervetuloa mukaan!',
-    participants: 0,
-    contact: 'golf@tampereurheilu.fi',
-  },
-  {
-    id: 53,
-    name: 'Turkun VoimanostoLiiga 2026',
-    city: 'Turku',
-    date: '2026-05-10',
-    sport: 'Voimanosto',
-    status: 'published',
-    organizer: 'Turku Voimanosto Urheiluseura',
-    description: 'Turkun voimanostoliiga on alueen suurin urheilutapahtuma.',
-    participants: 784,
-    contact: 'voimanosto@turkuurheilu.fi',
-  },
-  {
-    id: 54,
-    name: 'Oulun JalkapalloTurnaus 2026',
-    city: 'Oulu',
-    date: '2026-05-11',
-    sport: 'Jalkapallo',
-    status: 'draft',
-    organizer: 'Oulu Jalkapallo Seura',
-    description: 'Kansallinen jalkapallo turnaus järjestetään Oulussa.',
-    participants: 0,
-    contact: 'jalkapallo@ouluurheilu.fi',
-  },
-  {
-    id: 55,
-    name: 'Jyväskylän LentopalloTurnaus 2026',
-    city: 'Jyväskylä',
-    date: '2026-05-11',
-    sport: 'Lentopallo',
-    status: 'published',
-    organizer: 'Jyväskylä Lentopallo Urheilijat',
-    description: 'Lentopallo turnaus Jyväskylässa – kaikentasoisille urheilijoille.',
-    participants: 111,
-    contact: 'lentopallo@jyvaskylaurheilu.fi',
-  },
-  {
-    id: 56,
-    name: 'Lahtin HiihtoMestaruudet 2026',
-    city: 'Lahti',
-    date: '2026-05-12',
-    sport: 'Hiihto',
-    status: 'published',
-    organizer: 'Lahti Hiihto Club',
-    description: 'Lahtin perinteinen hiihtomestaruudet kerää osallistujia ympäri Suomen.',
-    participants: 241,
-    contact: 'hiihto@lahtiurheilu.fi',
-  },
-  {
-    id: 57,
-    name: 'Helsinkin JuoksuMaraton 2026',
-    city: 'Helsinki',
-    date: '2026-05-13',
-    sport: 'Juoksu',
-    status: 'published',
-    organizer: 'Helsinki Juoksu Seura',
-    description: 'Vuosittainen juoksu maraton Helsinkissa. Tervetuloa mukaan!',
-    participants: 497,
-    contact: 'juoksu@helsinkiurheilu.fi',
-  },
-  {
-    id: 58,
-    name: 'Espoon UintiMestaruudet 2026',
-    city: 'Espoo',
-    date: '2026-05-14',
-    sport: 'Uinti',
-    status: 'published',
-    organizer: 'Espoo Uinti Urheiluseura',
-    description: 'Espoon uintimestaruudet on alueen suurin urheilutapahtuma.',
-    participants: 526,
-    contact: 'uinti@espoourheilu.fi',
-  },
-  {
-    id: 59,
-    name: 'Tamperen PyöräilyKisat 2026',
-    city: 'Tampere',
-    date: '2026-05-14',
-    sport: 'Pyöräily',
-    status: 'published',
-    organizer: 'Tampere Pyöräily Athletics',
-    description: 'Kansallinen pyöräily kisat järjestetään Tamperessa.',
-    participants: 1084,
-    contact: 'pyoraily@tampereurheilu.fi',
-  },
-  {
-    id: 60,
-    name: 'Turkun SuunnistusSprint 2026',
-    city: 'Turku',
-    date: '2026-05-15',
-    sport: 'Suunnistus',
-    status: 'approved',
-    organizer: 'Turku Suunnistus Athletics',
-    description: 'Suunnistus sprint Turkussa – kaikentasoisille urheilijoille.',
-    participants: 0,
-    contact: 'suunnistus@turkuurheilu.fi',
-  },
-  {
-    id: 61,
-    name: 'Oulun TriathlonFestivaali 2026',
-    city: 'Oulu',
-    date: '2026-05-16',
-    sport: 'Triathlon',
-    status: 'approved',
-    organizer: 'Oulu Triathlon Club',
-    description: 'Oulun perinteinen triathlonfestivaali kerää osallistujia ympäri Suomen.',
-    participants: 0,
-    contact: 'triathlon@ouluurheilu.fi',
-  },
-  {
-    id: 62,
-    name: 'Jyväskylän TennisCup 2026',
-    city: 'Jyväskylä',
-    date: '2026-05-17',
-    sport: 'Tennis',
-    status: 'approved',
-    organizer: 'Jyväskylä Tennis Athletics',
-    description: 'Vuosittainen tennis cup Jyväskylässa. Tervetuloa mukaan!',
-    participants: 0,
-    contact: 'tennis@jyvaskylaurheilu.fi',
-  },
-  {
-    id: 63,
-    name: 'Lahtin YleisurheiluCup 2026',
-    city: 'Lahti',
-    date: '2026-05-17',
-    sport: 'Yleisurheilu',
-    status: 'review',
-    organizer: 'Lahti Yleisurheilu Athletics',
-    description: 'Lahtin yleisurheilucup on alueen suurin urheilutapahtuma.',
-    participants: 0,
-    contact: 'yleisurheilu@lahtiurheilu.fi',
-  },
-  {
-    id: 64,
-    name: 'Helsinkin MelontaRetki 2026',
-    city: 'Helsinki',
-    date: '2026-05-18',
-    sport: 'Melonta',
-    status: 'review',
-    organizer: 'Helsinki Melonta Klubi',
-    description: 'Kansallinen melonta retki järjestetään Helsinkissa.',
-    participants: 0,
-    contact: 'melonta@helsinkiurheilu.fi',
-  },
-  {
-    id: 65,
-    name: 'Espoon GolfOpen 2026',
-    city: 'Espoo',
-    date: '2026-05-19',
-    sport: 'Golf',
-    status: 'submitted',
-    organizer: 'Espoo Golf Urheilijat',
-    description: 'Golf open Espoossa – kaikentasoisille urheilijoille.',
-    participants: 0,
-    contact: 'golf@espoourheilu.fi',
-  },
-  {
-    id: 66,
-    name: 'Tamperen VoimanostoMestaruudet 2026',
-    city: 'Tampere',
-    date: '2026-05-20',
-    sport: 'Voimanosto',
-    status: 'submitted',
-    organizer: 'Tampere Voimanosto Urheilijat',
-    description: 'Tamperen perinteinen voimanostomestaruudet kerää osallistujia ympäri Suomen.',
-    participants: 0,
-    contact: 'voimanosto@tampereurheilu.fi',
-  },
-  {
-    id: 67,
-    name: 'Turkun JalkapalloMestaruudet 2026',
-    city: 'Turku',
-    date: '2026-05-21',
-    sport: 'Jalkapallo',
-    status: 'draft',
-    organizer: 'Turku Jalkapallo Klubi',
-    description: 'Vuosittainen jalkapallo mestaruudet Turkussa. Tervetuloa mukaan!',
-    participants: 0,
-    contact: 'jalkapallo@turkuurheilu.fi',
-  },
-  {
-    id: 68,
-    name: 'Oulun LentopalloFestival 2026',
-    city: 'Oulu',
-    date: '2026-05-21',
-    sport: 'Lentopallo',
-    status: 'draft',
-    organizer: 'Oulu Lentopallo Athletics',
-    description: 'Oulun lentopallofestival on alueen suurin urheilutapahtuma.',
-    participants: 0,
-    contact: 'lentopallo@ouluurheilu.fi',
-  },
-  {
-    id: 69,
-    name: 'Jyväskylän HiihtoMaraton 2026',
-    city: 'Jyväskylä',
-    date: '2026-05-22',
-    sport: 'Hiihto',
-    status: 'rejected',
-    organizer: 'Jyväskylä Hiihto Club',
-    description: 'Kansallinen hiihto maraton järjestetään Jyväskylässa.',
-    participants: 0,
-    contact: 'hiihto@jyvaskylaurheilu.fi',
-  },
-  {
-    id: 70,
-    name: 'Lahtin JuoksuPuolimaraton 2026',
-    city: 'Lahti',
-    date: '2026-05-23',
-    sport: 'Juoksu',
-    status: 'published',
-    organizer: 'Lahti Juoksu Urheiluseura',
-    description: 'Juoksu puolimaraton Lahtissa – kaikentasoisille urheilijoille.',
-    participants: 1282,
-    contact: 'juoksu@lahtiurheilu.fi',
-  },
-  {
-    id: 71,
-    name: 'Helsinkin UintiCup 2026',
-    city: 'Helsinki',
-    date: '2026-05-24',
-    sport: 'Uinti',
-    status: 'published',
-    organizer: 'Helsinki Uinti Seura',
-    description: 'Helsinkin perinteinen uinticup kerää osallistujia ympäri Suomen.',
-    participants: 104,
-    contact: 'uinti@helsinkiurheilu.fi',
-  },
-  {
-    id: 72,
-    name: 'Espoon PyöräilyFestivaali 2026',
-    city: 'Espoo',
-    date: '2026-05-24',
-    sport: 'Pyöräily',
-    status: 'published',
-    organizer: 'Espoo Pyöräily Seura',
-    description: 'Vuosittainen pyöräily festivaali Espoossa. Tervetuloa mukaan!',
-    participants: 1199,
-    contact: 'pyoraily@espoourheilu.fi',
-  },
-  {
-    id: 73,
-    name: 'Tamperen SuunnistusViikko 2026',
-    city: 'Tampere',
-    date: '2026-05-25',
-    sport: 'Suunnistus',
-    status: 'published',
-    organizer: 'Tampere Suunnistus Urheiluseura',
-    description: 'Tamperen suunnistusviikko on alueen suurin urheilutapahtuma.',
-    participants: 457,
-    contact: 'suunnistus@tampereurheilu.fi',
-  },
-  {
-    id: 74,
-    name: 'Turkun TriathlonCup 2026',
-    city: 'Turku',
-    date: '2026-05-26',
-    sport: 'Triathlon',
-    status: 'published',
-    organizer: 'Turku Triathlon Seura',
-    description: 'Kansallinen triathlon cup järjestetään Turkussa.',
-    participants: 1516,
-    contact: 'triathlon@turkuurheilu.fi',
-  },
-  {
-    id: 75,
-    name: 'Oulun TennisTurnaus 2026',
-    city: 'Oulu',
-    date: '2026-05-27',
-    sport: 'Tennis',
-    status: 'approved',
-    organizer: 'Oulu Tennis Seura',
-    description: 'Tennis turnaus Oulussa – kaikentasoisille urheilijoille.',
-    participants: 0,
-    contact: 'tennis@ouluurheilu.fi',
-  },
-  {
-    id: 76,
-    name: 'Jyväskylän YleisurheiluGala 2026',
-    city: 'Jyväskylä',
-    date: '2026-05-27',
-    sport: 'Yleisurheilu',
-    status: 'approved',
-    organizer: 'Jyväskylä Yleisurheilu Urheiluseura',
-    description: 'Jyväskylän perinteinen yleisurheilugala kerää osallistujia ympäri Suomen.',
-    participants: 0,
-    contact: 'yleisurheilu@jyvaskylaurheilu.fi',
-  },
-  {
-    id: 77,
-    name: 'Lahtin MelontaKoskikisat 2026',
-    city: 'Lahti',
-    date: '2026-05-28',
-    sport: 'Melonta',
-    status: 'approved',
-    organizer: 'Lahti Melonta Urheiluseura',
-    description: 'Vuosittainen melonta koskikisat Lahtissa. Tervetuloa mukaan!',
-    participants: 0,
-    contact: 'melonta@lahtiurheilu.fi',
-  },
-  {
-    id: 78,
-    name: 'Helsinkin GolfCup 2026',
-    city: 'Helsinki',
-    date: '2026-05-29',
-    sport: 'Golf',
-    status: 'review',
-    organizer: 'Helsinki Golf Klubi',
-    description: 'Helsinkin golfcup on alueen suurin urheilutapahtuma.',
-    participants: 0,
-    contact: 'golf@helsinkiurheilu.fi',
-  },
-  {
-    id: 79,
-    name: 'Espoon VoimanostoCup 2026',
-    city: 'Espoo',
-    date: '2026-05-30',
-    sport: 'Voimanosto',
-    status: 'review',
-    organizer: 'Espoo Voimanosto Urheiluseura',
-    description: 'Kansallinen voimanosto cup järjestetään Espoossa.',
-    participants: 0,
-    contact: 'voimanosto@espoourheilu.fi',
-  },
-  {
-    id: 80,
-    name: 'Tamperen JalkapalloFestival 2026',
-    city: 'Tampere',
-    date: '2026-05-31',
-    sport: 'Jalkapallo',
-    status: 'submitted',
-    organizer: 'Tampere Jalkapallo Seura',
-    description: 'Jalkapallo festival Tamperessa – kaikentasoisille urheilijoille.',
-    participants: 0,
-    contact: 'jalkapallo@tampereurheilu.fi',
-  },
-  {
-    id: 81,
-    name: 'Lahtin HiihtoMaraton 2026',
-    city: 'Lahti',
-    date: '2026-06-01',
-    sport: 'Hiihto',
-    status: 'draft',
-    organizer: 'Lahti Hiihto Club',
-    description: 'Lahtin perinteinen hiihtomaraton kerää osallistujia ympäri Suomen.',
-    participants: 0,
-    contact: 'hiihto@lahtiurheilu.fi',
-  },
-  {
-    id: 82,
-    name: 'Helsinkin JuoksuPuolimaraton 2026',
-    city: 'Helsinki',
-    date: '2026-06-01',
-    sport: 'Juoksu',
-    status: 'draft',
-    organizer: 'Helsinki Juoksu Seura',
-    description: 'Vuosittainen juoksu puolimaraton Helsinkissa. Tervetuloa mukaan!',
-    participants: 0,
-    contact: 'juoksu@helsinkiurheilu.fi',
-  },
-  {
-    id: 83,
-    name: 'Espoon UintiCup 2026',
-    city: 'Espoo',
-    date: '2026-06-02',
-    sport: 'Uinti',
-    status: 'rejected',
-    organizer: 'Espoo Uinti Urheiluseura',
-    description: 'Espoon uinticup on alueen suurin urheilutapahtuma.',
-    participants: 0,
-    contact: 'uinti@espoourheilu.fi',
-  },
-  {
-    id: 84,
-    name: 'Tamperen PyöräilyFestivaali 2026',
-    city: 'Tampere',
-    date: '2026-06-03',
-    sport: 'Pyöräily',
-    status: 'review',
-    organizer: 'Tampere Pyöräily Athletics',
-    description: 'Kansallinen pyöräily festivaali järjestetään Tamperessa.',
-    participants: 0,
-    contact: 'pyoraily@tampereurheilu.fi',
-  },
-  {
-    id: 85,
-    name: 'Turkun SuunnistusViikko 2026',
-    city: 'Turku',
-    date: '2026-06-03',
-    sport: 'Suunnistus',
-    status: 'draft',
-    organizer: 'Turku Suunnistus Athletics',
-    description: 'Suunnistus viikko Turkussa – kaikentasoisille urheilijoille.',
-    participants: 0,
-    contact: 'suunnistus@turkuurheilu.fi',
-  },
-  {
-    id: 86,
-    name: 'Oulun TriathlonCup 2026',
-    city: 'Oulu',
-    date: '2026-06-04',
-    sport: 'Triathlon',
-    status: 'published',
-    organizer: 'Oulu Triathlon Club',
-    description: 'Oulun perinteinen triathloncup kerää osallistujia ympäri Suomen.',
-    participants: 1166,
-    contact: 'triathlon@ouluurheilu.fi',
-  },
-  {
-    id: 87,
-    name: 'Jyväskylän TennisTurnaus 2026',
-    city: 'Jyväskylä',
-    date: '2026-06-05',
-    sport: 'Tennis',
-    status: 'approved',
-    organizer: 'Jyväskylä Tennis Athletics',
-    description: 'Vuosittainen tennis turnaus Jyväskylässa. Tervetuloa mukaan!',
-    participants: 0,
-    contact: 'tennis@jyvaskylaurheilu.fi',
-  },
-  {
-    id: 88,
-    name: 'Lahtin YleisurheiluGala 2026',
-    city: 'Lahti',
-    date: '2026-06-06',
-    sport: 'Yleisurheilu',
-    status: 'published',
-    organizer: 'Lahti Yleisurheilu Athletics',
-    description: 'Lahtin yleisurheilugala on alueen suurin urheilutapahtuma.',
-    participants: 501,
-    contact: 'yleisurheilu@lahtiurheilu.fi',
-  },
-  {
-    id: 89,
-    name: 'Helsinkin MelontaKoskikisat 2026',
-    city: 'Helsinki',
-    date: '2026-06-06',
-    sport: 'Melonta',
-    status: 'approved',
-    organizer: 'Helsinki Melonta Klubi',
-    description: 'Kansallinen melonta koskikisat järjestetään Helsinkissa.',
-    participants: 0,
-    contact: 'melonta@helsinkiurheilu.fi',
-  },
-  {
-    id: 90,
-    name: 'Espoon GolfCup 2026',
-    city: 'Espoo',
-    date: '2026-06-07',
-    sport: 'Golf',
-    status: 'approved',
-    organizer: 'Espoo Golf Urheilijat',
-    description: 'Golf cup Espoossa – kaikentasoisille urheilijoille.',
-    participants: 0,
-    contact: 'golf@espoourheilu.fi',
-  },
-  {
-    id: 91,
-    name: 'Tamperen VoimanostoCup 2026',
-    city: 'Tampere',
-    date: '2026-06-08',
-    sport: 'Voimanosto',
-    status: 'review',
-    organizer: 'Tampere Voimanosto Urheilijat',
-    description: 'Tamperen perinteinen voimanostocup kerää osallistujia ympäri Suomen.',
-    participants: 0,
-    contact: 'voimanosto@tampereurheilu.fi',
-  },
-  {
-    id: 92,
-    name: 'Turkun JalkapalloFestival 2026',
-    city: 'Turku',
-    date: '2026-06-09',
-    sport: 'Jalkapallo',
-    status: 'review',
-    organizer: 'Turku Jalkapallo Klubi',
-    description: 'Vuosittainen jalkapallo festival Turkussa. Tervetuloa mukaan!',
-    participants: 0,
-    contact: 'jalkapallo@turkuurheilu.fi',
-  },
-  {
-    id: 93,
-    name: 'Oulun LentopalloMestaruudet 2026',
-    city: 'Oulu',
-    date: '2026-06-09',
-    sport: 'Lentopallo',
-    status: 'review',
-    organizer: 'Oulu Lentopallo Athletics',
-    description: 'Oulun lentopallomestaruudet on alueen suurin urheilutapahtuma.',
-    participants: 0,
-    contact: 'lentopallo@ouluurheilu.fi',
-  },
-  {
-    id: 94,
-    name: 'Jyväskylän HiihtoCup 2026',
-    city: 'Jyväskylä',
-    date: '2026-06-10',
-    sport: 'Hiihto',
-    status: 'submitted',
-    organizer: 'Jyväskylä Hiihto Club',
-    description: 'Kansallinen hiihto cup järjestetään Jyväskylässa.',
-    participants: 0,
-    contact: 'hiihto@jyvaskylaurheilu.fi',
-  },
-  {
-    id: 95,
-    name: 'Lahtin JuoksuCup 2026',
-    city: 'Lahti',
-    date: '2026-06-11',
-    sport: 'Juoksu',
-    status: 'draft',
-    organizer: 'Lahti Juoksu Urheiluseura',
-    description: 'Juoksu cup Lahtissa – kaikentasoisille urheilijoille.',
-    participants: 0,
-    contact: 'juoksu@lahtiurheilu.fi',
-  },
-  {
-    id: 96,
-    name: 'Helsinkin UintiGala 2026',
-    city: 'Helsinki',
-    date: '2026-06-12',
-    sport: 'Uinti',
-    status: 'draft',
-    organizer: 'Helsinki Uinti Seura',
-    description: 'Helsinkin perinteinen uintigala kerää osallistujia ympäri Suomen.',
-    participants: 0,
-    contact: 'uinti@helsinkiurheilu.fi',
-  },
-  {
-    id: 97,
-    name: 'Espoon PyöräilyCup 2026',
-    city: 'Espoo',
-    date: '2026-06-12',
-    sport: 'Pyöräily',
-    status: 'rejected',
-    organizer: 'Espoo Pyöräily Seura',
-    description: 'Vuosittainen pyöräily cup Espoossa. Tervetuloa mukaan!',
-    participants: 0,
-    contact: 'pyoraily@espoourheilu.fi',
-  },
-  {
-    id: 98,
-    name: 'Tamperen SuunnistusMestaruudet 2026',
-    city: 'Tampere',
-    date: '2026-06-13',
-    sport: 'Suunnistus',
-    status: 'published',
-    organizer: 'Tampere Suunnistus Urheiluseura',
-    description: 'Tamperen suunnistusmestaruudet on alueen suurin urheilutapahtuma.',
-    participants: 969,
-    contact: 'suunnistus@tampereurheilu.fi',
-  },
-  {
-    id: 99,
-    name: 'Turkun TriathlonKisat 2026',
-    city: 'Turku',
-    date: '2026-06-14',
-    sport: 'Triathlon',
-    status: 'submitted',
-    organizer: 'Turku Triathlon Seura',
-    description: 'Kansallinen triathlon kisat järjestetään Turkussa.',
-    participants: 0,
-    contact: 'triathlon@turkuurheilu.fi',
-  },
-  {
-    id: 100,
-    name: 'Oulun TennisOpen 2026',
-    city: 'Oulu',
-    date: '2026-06-15',
-    sport: 'Tennis',
-    status: 'published',
-    organizer: 'Oulu Tennis Seura',
-    description: 'Tennis open Oulussa – kaikentasoisille urheilijoille.',
-    participants: 619,
-    contact: 'tennis@ouluurheilu.fi',
-  },
-  {
-    id: 101,
-    name: 'Jyväskylän YleisurheiluKisat 2026',
-    city: 'Jyväskylä',
-    date: '2026-06-15',
-    sport: 'Yleisurheilu',
-    status: 'approved',
-    organizer: 'Jyväskylä Yleisurheilu Urheiluseura',
-    description: 'Jyväskylän perinteinen yleisurheilukisat kerää osallistujia ympäri Suomen.',
-    participants: 0,
-    contact: 'yleisurheilu@jyvaskylaurheilu.fi',
-  },
-  {
-    id: 102,
-    name: 'Lahtin MelontaCup 2026',
-    city: 'Lahti',
-    date: '2026-06-16',
-    sport: 'Melonta',
-    status: 'published',
-    organizer: 'Lahti Melonta Urheiluseura',
-    description: 'Vuosittainen melonta cup Lahtissa. Tervetuloa mukaan!',
-    participants: 1830,
-    contact: 'melonta@lahtiurheilu.fi',
-  },
-  {
-    id: 103,
-    name: 'Helsinkin GolfMestaruudet 2026',
-    city: 'Helsinki',
-    date: '2026-06-17',
-    sport: 'Golf',
-    status: 'approved',
-    organizer: 'Helsinki Golf Klubi',
-    description: 'Helsinkin golfmestaruudet on alueen suurin urheilutapahtuma.',
-    participants: 0,
-    contact: 'golf@helsinkiurheilu.fi',
-  },
-  {
-    id: 104,
-    name: 'Espoon VoimanostoKisat 2026',
-    city: 'Espoo',
-    date: '2026-06-18',
-    sport: 'Voimanosto',
-    status: 'approved',
-    organizer: 'Espoo Voimanosto Urheiluseura',
-    description: 'Kansallinen voimanosto kisat järjestetään Espoossa.',
-    participants: 0,
-    contact: 'voimanosto@espoourheilu.fi',
-  },
-  {
-    id: 105,
-    name: 'Tamperen JalkapalloCup 2026',
-    city: 'Tampere',
-    date: '2026-06-18',
-    sport: 'Jalkapallo',
-    status: 'approved',
-    organizer: 'Tampere Jalkapallo Seura',
-    description: 'Jalkapallo cup Tamperessa – kaikentasoisille urheilijoille.',
-    participants: 0,
-    contact: 'jalkapallo@tampereurheilu.fi',
-  },
-  {
-    id: 106,
-    name: 'Turkun LentopalloCup 2026',
-    city: 'Turku',
-    date: '2026-06-19',
-    sport: 'Lentopallo',
-    status: 'review',
-    organizer: 'Turku Lentopallo Urheilijat',
-    description: 'Turkun perinteinen lentopallocup kerää osallistujia ympäri Suomen.',
-    participants: 0,
-    contact: 'lentopallo@turkuurheilu.fi',
-  },
-  {
-    id: 107,
-    name: 'Oulun HiihtoKisat 2026',
-    city: 'Oulu',
-    date: '2026-06-20',
-    sport: 'Hiihto',
-    status: 'review',
-    organizer: 'Oulu Hiihto Athletics',
-    description: 'Vuosittainen hiihto kisat Oulussa. Tervetuloa mukaan!',
-    participants: 0,
-    contact: 'hiihto@ouluurheilu.fi',
-  },
-  {
-    id: 108,
-    name: 'Jyväskylän JuoksuJuoksukisat 2026',
-    city: 'Jyväskylä',
-    date: '2026-06-21',
-    sport: 'Juoksu',
-    status: 'submitted',
-    organizer: 'Jyväskylä Juoksu Urheiluseura',
-    description: 'Jyväskylän juoksujuoksukisat on alueen suurin urheilutapahtuma.',
-    participants: 0,
-    contact: 'juoksu@jyvaskylaurheilu.fi',
-  },
-  {
-    id: 109,
-    name: 'Lahtin UintiKisat 2026',
-    city: 'Lahti',
-    date: '2026-06-21',
-    sport: 'Uinti',
-    status: 'draft',
-    organizer: 'Lahti Uinti Klubi',
-    description: 'Kansallinen uinti kisat järjestetään Lahtissa.',
-    participants: 0,
-    contact: 'uinti@lahtiurheilu.fi',
-  },
-  {
-    id: 110,
-    name: 'Helsinkin PyöräilyYmpäriajo 2026',
-    city: 'Helsinki',
-    date: '2026-06-22',
-    sport: 'Pyöräily',
-    status: 'draft',
-    organizer: 'Helsinki Pyöräily Urheilijat',
-    description: 'Pyöräily ympäriajo Helsinkissa – kaikentasoisille urheilijoille.',
-    participants: 0,
-    contact: 'pyoraily@helsinkiurheilu.fi',
-  },
-  {
-    id: 111,
-    name: 'Espoon SuunnistusCup 2026',
-    city: 'Espoo',
-    date: '2026-06-23',
-    sport: 'Suunnistus',
-    status: 'rejected',
-    organizer: 'Espoo Suunnistus Seura',
-    description: 'Espoon perinteinen suunnistuscup kerää osallistujia ympäri Suomen.',
-    participants: 0,
-    contact: 'suunnistus@espoourheilu.fi',
-  },
-  {
-    id: 112,
-    name: 'Tamperen TriathlonIronman 2026',
-    city: 'Tampere',
-    date: '2026-06-24',
-    sport: 'Triathlon',
-    status: 'published',
-    organizer: 'Tampere Triathlon Urheiluseura',
-    description: 'Vuosittainen triathlon ironman Tamperessa. Tervetuloa mukaan!',
-    participants: 63,
-    contact: 'triathlon@tampereurheilu.fi',
-  },
-  {
-    id: 113,
-    name: 'Turkun TennisMestaruudet 2026',
-    city: 'Turku',
-    date: '2026-06-24',
-    sport: 'Tennis',
-    status: 'review',
-    organizer: 'Turku Tennis Klubi',
-    description: 'Turkun tennismestaruudet on alueen suurin urheilutapahtuma.',
-    participants: 0,
-    contact: 'tennis@turkuurheilu.fi',
-  },
-  {
-    id: 114,
-    name: 'Oulun YleisurheiluMestaruudet 2026',
-    city: 'Oulu',
-    date: '2026-06-25',
-    sport: 'Yleisurheilu',
-    status: 'published',
-    organizer: 'Oulu Yleisurheilu Athletics',
-    description: 'Kansallinen yleisurheilu mestaruudet järjestetään Oulussa.',
-    participants: 1700,
-    contact: 'yleisurheilu@ouluurheilu.fi',
-  },
-  {
-    id: 115,
-    name: 'Jyväskylän MelontaMestaruudet 2026',
-    city: 'Jyväskylä',
-    date: '2026-06-26',
-    sport: 'Melonta',
-    status: 'draft',
-    organizer: 'Jyväskylä Melonta Seura',
-    description: 'Melonta mestaruudet Jyväskylässa – kaikentasoisille urheilijoille.',
-    participants: 0,
-    contact: 'melonta@jyvaskylaurheilu.fi',
-  },
-  {
-    id: 116,
-    name: 'Lahtin GolfTurnaus 2026',
-    city: 'Lahti',
-    date: '2026-06-27',
-    sport: 'Golf',
-    status: 'published',
-    organizer: 'Lahti Golf Klubi',
-    description: 'Lahtin perinteinen golfturnaus kerää osallistujia ympäri Suomen.',
-    participants: 1479,
-    contact: 'golf@lahtiurheilu.fi',
-  },
-  {
-    id: 117,
-    name: 'Helsinkin VoimanostoLiiga 2026',
-    city: 'Helsinki',
-    date: '2026-06-27',
-    sport: 'Voimanosto',
-    status: 'approved',
-    organizer: 'Helsinki Voimanosto Club',
-    description: 'Vuosittainen voimanosto liiga Helsinkissa. Tervetuloa mukaan!',
-    participants: 0,
-    contact: 'voimanosto@helsinkiurheilu.fi',
-  },
-  {
-    id: 118,
-    name: 'Espoon JalkapalloTurnaus 2026',
-    city: 'Espoo',
-    date: '2026-06-28',
-    sport: 'Jalkapallo',
-    status: 'approved',
-    organizer: 'Espoo Jalkapallo Club',
-    description: 'Espoon jalkapalloturnaus on alueen suurin urheilutapahtuma.',
-    participants: 0,
-    contact: 'jalkapallo@espoourheilu.fi',
-  },
-  {
-    id: 119,
-    name: 'Tamperen LentopalloTurnaus 2026',
-    city: 'Tampere',
-    date: '2026-06-29',
-    sport: 'Lentopallo',
-    status: 'approved',
-    organizer: 'Tampere Lentopallo Klubi',
-    description: 'Kansallinen lentopallo turnaus järjestetään Tamperessa.',
-    participants: 0,
-    contact: 'lentopallo@tampereurheilu.fi',
-  },
-  {
-    id: 120,
-    name: 'Turkun HiihtoMestaruudet 2026',
-    city: 'Turku',
-    date: '2026-06-30',
-    sport: 'Hiihto',
-    status: 'review',
-    organizer: 'Turku Hiihto Urheilijat',
-    description: 'Hiihto mestaruudet Turkussa – kaikentasoisille urheilijoille.',
-    participants: 0,
-    contact: 'hiihto@turkuurheilu.fi',
-  },
-  {
-    id: 121,
-    name: 'Helsinkin UintiKisat 2026',
-    city: 'Helsinki',
-    date: '2026-07-01',
-    sport: 'Uinti',
-    status: 'review',
-    organizer: 'Helsinki Uinti Seura',
-    description: 'Helsinkin perinteinen uintikisat kerää osallistujia ympäri Suomen.',
-    participants: 0,
-    contact: 'uinti@helsinkiurheilu.fi',
-  },
-  {
-    id: 122,
-    name: 'Espoon PyöräilyYmpäriajo 2026',
-    city: 'Espoo',
-    date: '2026-07-01',
-    sport: 'Pyöräily',
-    status: 'submitted',
-    organizer: 'Espoo Pyöräily Seura',
-    description: 'Vuosittainen pyöräily ympäriajo Espoossa. Tervetuloa mukaan!',
-    participants: 0,
-    contact: 'pyoraily@espoourheilu.fi',
-  },
-  {
-    id: 123,
-    name: 'Tamperen SuunnistusCup 2026',
-    city: 'Tampere',
-    date: '2026-07-02',
-    sport: 'Suunnistus',
-    status: 'draft',
-    organizer: 'Tampere Suunnistus Urheiluseura',
-    description: 'Tamperen suunnistuscup on alueen suurin urheilutapahtuma.',
-    participants: 0,
-    contact: 'suunnistus@tampereurheilu.fi',
-  },
-  {
-    id: 124,
-    name: 'Turkun TriathlonIronman 2026',
-    city: 'Turku',
-    date: '2026-07-03',
-    sport: 'Triathlon',
-    status: 'draft',
-    organizer: 'Turku Triathlon Seura',
-    description: 'Kansallinen triathlon ironman järjestetään Turkussa.',
-    participants: 0,
-    contact: 'triathlon@turkuurheilu.fi',
-  },
-  {
-    id: 125,
-    name: 'Oulun TennisMestaruudet 2026',
-    city: 'Oulu',
-    date: '2026-07-04',
-    sport: 'Tennis',
-    status: 'rejected',
-    organizer: 'Oulu Tennis Seura',
-    description: 'Tennis mestaruudet Oulussa – kaikentasoisille urheilijoille.',
-    participants: 0,
-    contact: 'tennis@ouluurheilu.fi',
-  },
-  {
-    id: 126,
-    name: 'Jyväskylän YleisurheiluMestaruudet 2026',
-    city: 'Jyväskylä',
-    date: '2026-07-04',
-    sport: 'Yleisurheilu',
-    status: 'submitted',
-    organizer: 'Jyväskylä Yleisurheilu Urheiluseura',
-    description: 'Jyväskylän perinteinen yleisurheilumestaruudet kerää osallistujia ympäri Suomen.',
-    participants: 0,
-    contact: 'yleisurheilu@jyvaskylaurheilu.fi',
-  },
-  {
-    id: 127,
-    name: 'Lahtin MelontaMestaruudet 2026',
-    city: 'Lahti',
-    date: '2026-07-05',
-    sport: 'Melonta',
-    status: 'review',
-    organizer: 'Lahti Melonta Urheiluseura',
-    description: 'Vuosittainen melonta mestaruudet Lahtissa. Tervetuloa mukaan!',
-    participants: 0,
-    contact: 'melonta@lahtiurheilu.fi',
-  },
-  {
-    id: 128,
-    name: 'Helsinkin GolfTurnaus 2026',
-    city: 'Helsinki',
-    date: '2026-07-06',
-    sport: 'Golf',
-    status: 'published',
-    organizer: 'Helsinki Golf Klubi',
-    description: 'Helsinkin golfturnaus on alueen suurin urheilutapahtuma.',
-    participants: 619,
-    contact: 'golf@helsinkiurheilu.fi',
-  },
-  {
-    id: 129,
-    name: 'Espoon VoimanostoLiiga 2026',
-    city: 'Espoo',
-    date: '2026-07-07',
-    sport: 'Voimanosto',
-    status: 'approved',
-    organizer: 'Espoo Voimanosto Urheiluseura',
-    description: 'Kansallinen voimanosto liiga järjestetään Espoossa.',
-    participants: 0,
-    contact: 'voimanosto@espoourheilu.fi',
-  },
-  {
-    id: 130,
-    name: 'Tamperen JalkapalloTurnaus 2026',
-    city: 'Tampere',
-    date: '2026-07-07',
-    sport: 'Jalkapallo',
-    status: 'published',
-    organizer: 'Tampere Jalkapallo Seura',
-    description: 'Jalkapallo turnaus Tamperessa – kaikentasoisille urheilijoille.',
-    participants: 490,
-    contact: 'jalkapallo@tampereurheilu.fi',
-  },
-  {
-    id: 131,
-    name: 'Turkun LentopalloTurnaus 2026',
-    city: 'Turku',
-    date: '2026-07-08',
-    sport: 'Lentopallo',
-    status: 'approved',
-    organizer: 'Turku Lentopallo Urheilijat',
-    description: 'Turkun perinteinen lentopalloturnaus kerää osallistujia ympäri Suomen.',
-    participants: 0,
-    contact: 'lentopallo@turkuurheilu.fi',
-  },
-  {
-    id: 132,
-    name: 'Oulun HiihtoMestaruudet 2026',
-    city: 'Oulu',
-    date: '2026-07-09',
-    sport: 'Hiihto',
-    status: 'approved',
-    organizer: 'Oulu Hiihto Athletics',
-    description: 'Vuosittainen hiihto mestaruudet Oulussa. Tervetuloa mukaan!',
-    participants: 0,
-    contact: 'hiihto@ouluurheilu.fi',
-  },
-  {
-    id: 133,
-    name: 'Jyväskylän JuoksuMaraton 2026',
-    city: 'Jyväskylä',
-    date: '2026-07-10',
-    sport: 'Juoksu',
-    status: 'approved',
-    organizer: 'Jyväskylä Juoksu Urheiluseura',
-    description: 'Jyväskylän juoksumaraton on alueen suurin urheilutapahtuma.',
-    participants: 0,
-    contact: 'juoksu@jyvaskylaurheilu.fi',
-  },
-  {
-    id: 134,
-    name: 'Lahtin UintiMestaruudet 2026',
-    city: 'Lahti',
-    date: '2026-07-11',
-    sport: 'Uinti',
-    status: 'review',
-    organizer: 'Lahti Uinti Klubi',
-    description: 'Kansallinen uinti mestaruudet järjestetään Lahtissa.',
-    participants: 0,
-    contact: 'uinti@lahtiurheilu.fi',
-  },
-  {
-    id: 135,
-    name: 'Helsinkin PyöräilyKisat 2026',
-    city: 'Helsinki',
-    date: '2026-07-11',
-    sport: 'Pyöräily',
-    status: 'review',
-    organizer: 'Helsinki Pyöräily Urheilijat',
-    description: 'Pyöräily kisat Helsinkissa – kaikentasoisille urheilijoille.',
-    participants: 0,
-    contact: 'pyoraily@helsinkiurheilu.fi',
-  },
-  {
-    id: 136,
-    name: 'Espoon SuunnistusSprint 2026',
-    city: 'Espoo',
-    date: '2026-07-12',
-    sport: 'Suunnistus',
-    status: 'submitted',
-    organizer: 'Espoo Suunnistus Seura',
-    description: 'Espoon perinteinen suunnistussprint kerää osallistujia ympäri Suomen.',
-    participants: 0,
-    contact: 'suunnistus@espoourheilu.fi',
-  },
-  {
-    id: 137,
-    name: 'Tamperen TriathlonFestivaali 2026',
-    city: 'Tampere',
-    date: '2026-07-13',
-    sport: 'Triathlon',
-    status: 'draft',
-    organizer: 'Tampere Triathlon Urheiluseura',
-    description: 'Vuosittainen triathlon festivaali Tamperessa. Tervetuloa mukaan!',
-    participants: 0,
-    contact: 'triathlon@tampereurheilu.fi',
-  },
-  {
-    id: 138,
-    name: 'Turkun TennisCup 2026',
-    city: 'Turku',
-    date: '2026-07-14',
-    sport: 'Tennis',
-    status: 'draft',
-    organizer: 'Turku Tennis Klubi',
-    description: 'Turkun tenniscup on alueen suurin urheilutapahtuma.',
-    participants: 0,
-    contact: 'tennis@turkuurheilu.fi',
-  },
-  {
-    id: 139,
-    name: 'Oulun YleisurheiluCup 2026',
-    city: 'Oulu',
-    date: '2026-07-14',
-    sport: 'Yleisurheilu',
-    status: 'draft',
-    organizer: 'Oulu Yleisurheilu Athletics',
-    description: 'Kansallinen yleisurheilu cup järjestetään Oulussa.',
-    participants: 0,
-    contact: 'yleisurheilu@ouluurheilu.fi',
-  },
-  {
-    id: 140,
-    name: 'Jyväskylän MelontaRetki 2026',
-    city: 'Jyväskylä',
-    date: '2026-07-15',
-    sport: 'Melonta',
-    status: 'published',
-    organizer: 'Jyväskylä Melonta Seura',
-    description: 'Melonta retki Jyväskylässa – kaikentasoisille urheilijoille.',
-    participants: 1613,
-    contact: 'melonta@jyvaskylaurheilu.fi',
-  },
-  {
-    id: 141,
-    name: 'Lahtin GolfOpen 2026',
-    city: 'Lahti',
-    date: '2026-07-16',
-    sport: 'Golf',
-    status: 'draft',
-    organizer: 'Lahti Golf Klubi',
-    description: 'Lahtin perinteinen golfopen kerää osallistujia ympäri Suomen.',
-    participants: 0,
-    contact: 'golf@lahtiurheilu.fi',
-  },
-  {
-    id: 142,
-    name: 'Helsinkin VoimanostoMestaruudet 2026',
-    city: 'Helsinki',
-    date: '2026-07-17',
-    sport: 'Voimanosto',
-    status: 'published',
-    organizer: 'Helsinki Voimanosto Club',
-    description: 'Vuosittainen voimanosto mestaruudet Helsinkissa. Tervetuloa mukaan!',
-    participants: 259,
-    contact: 'voimanosto@helsinkiurheilu.fi',
-  },
-  {
-    id: 143,
-    name: 'Espoon JalkapalloMestaruudet 2026',
-    city: 'Espoo',
-    date: '2026-07-17',
-    sport: 'Jalkapallo',
-    status: 'review',
-    organizer: 'Espoo Jalkapallo Club',
-    description: 'Espoon jalkapallomestaruudet on alueen suurin urheilutapahtuma.',
-    participants: 0,
-    contact: 'jalkapallo@espoourheilu.fi',
-  },
-  {
-    id: 144,
-    name: 'Tamperen LentopalloFestival 2026',
-    city: 'Tampere',
-    date: '2026-07-18',
-    sport: 'Lentopallo',
-    status: 'published',
-    organizer: 'Tampere Lentopallo Klubi',
-    description: 'Kansallinen lentopallo festival järjestetään Tamperessa.',
-    participants: 828,
-    contact: 'lentopallo@tampereurheilu.fi',
-  },
-  {
-    id: 145,
-    name: 'Turkun HiihtoMaraton 2026',
-    city: 'Turku',
-    date: '2026-07-19',
-    sport: 'Hiihto',
-    status: 'approved',
-    organizer: 'Turku Hiihto Urheilijat',
-    description: 'Hiihto maraton Turkussa – kaikentasoisille urheilijoille.',
-    participants: 0,
-    contact: 'hiihto@turkuurheilu.fi',
-  },
-  {
-    id: 146,
-    name: 'Oulun JuoksuPuolimaraton 2026',
-    city: 'Oulu',
-    date: '2026-07-20',
-    sport: 'Juoksu',
-    status: 'approved',
-    organizer: 'Oulu Juoksu Athletics',
-    description: 'Oulun perinteinen juoksupuolimaraton kerää osallistujia ympäri Suomen.',
-    participants: 0,
-    contact: 'juoksu@ouluurheilu.fi',
-  },
-  {
-    id: 147,
-    name: 'Jyväskylän UintiCup 2026',
-    city: 'Jyväskylä',
-    date: '2026-07-21',
-    sport: 'Uinti',
-    status: 'approved',
-    organizer: 'Jyväskylä Uinti Club',
-    description: 'Vuosittainen uinti cup Jyväskylässa. Tervetuloa mukaan!',
-    participants: 0,
-    contact: 'uinti@jyvaskylaurheilu.fi',
-  },
-  {
-    id: 148,
-    name: 'Lahtin PyöräilyFestivaali 2026',
-    city: 'Lahti',
-    date: '2026-07-21',
-    sport: 'Pyöräily',
-    status: 'review',
-    organizer: 'Lahti Pyöräily Urheiluseura',
-    description: 'Lahtin pyöräilyfestivaali on alueen suurin urheilutapahtuma.',
-    participants: 0,
-    contact: 'pyoraily@lahtiurheilu.fi',
-  },
-  {
-    id: 149,
-    name: 'Helsinkin SuunnistusViikko 2026',
-    city: 'Helsinki',
-    date: '2026-07-22',
-    sport: 'Suunnistus',
-    status: 'review',
-    organizer: 'Helsinki Suunnistus Athletics',
-    description: 'Kansallinen suunnistus viikko järjestetään Helsinkissa.',
-    participants: 0,
-    contact: 'suunnistus@helsinkiurheilu.fi',
-  },
-  {
-    id: 150,
-    name: 'Espoon TriathlonCup 2026',
-    city: 'Espoo',
-    date: '2026-07-23',
-    sport: 'Triathlon',
-    status: 'submitted',
-    organizer: 'Espoo Triathlon Klubi',
-    description: 'Triathlon cup Espoossa – kaikentasoisille urheilijoille.',
-    participants: 0,
-    contact: 'triathlon@espoourheilu.fi',
-  },
-  {
-    id: 151,
-    name: 'Tamperen TennisTurnaus 2026',
-    city: 'Tampere',
-    date: '2026-07-24',
-    sport: 'Tennis',
-    status: 'submitted',
-    organizer: 'Tampere Tennis Urheilijat',
-    description: 'Tamperen perinteinen tennisturnaus kerää osallistujia ympäri Suomen.',
-    participants: 0,
-    contact: 'tennis@tampereurheilu.fi',
-  },
-  {
-    id: 152,
-    name: 'Turkun YleisurheiluGala 2026',
-    city: 'Turku',
-    date: '2026-07-24',
-    sport: 'Yleisurheilu',
-    status: 'draft',
-    organizer: 'Turku Yleisurheilu Urheilijat',
-    description: 'Vuosittainen yleisurheilu gala Turkussa. Tervetuloa mukaan!',
-    participants: 0,
-    contact: 'yleisurheilu@turkuurheilu.fi',
-  },
-  {
-    id: 153,
-    name: 'Oulun MelontaKoskikisat 2026',
-    city: 'Oulu',
-    date: '2026-07-25',
-    sport: 'Melonta',
-    status: 'draft',
-    organizer: 'Oulu Melonta Urheilijat',
-    description: 'Oulun melontakoskikisat on alueen suurin urheilutapahtuma.',
-    participants: 0,
-    contact: 'melonta@ouluurheilu.fi',
-  },
-  {
-    id: 154,
-    name: 'Jyväskylän GolfCup 2026',
-    city: 'Jyväskylä',
-    date: '2026-07-26',
-    sport: 'Golf',
-    status: 'rejected',
-    organizer: 'Jyväskylä Golf Urheiluseura',
-    description: 'Kansallinen golf cup järjestetään Jyväskylässa.',
-    participants: 0,
-    contact: 'golf@jyvaskylaurheilu.fi',
-  },
-  {
-    id: 155,
-    name: 'Lahtin VoimanostoCup 2026',
-    city: 'Lahti',
-    date: '2026-07-27',
-    sport: 'Voimanosto',
-    status: 'approved',
-    organizer: 'Lahti Voimanosto Club',
-    description: 'Voimanosto cup Lahtissa – kaikentasoisille urheilijoille.',
-    participants: 0,
-    contact: 'voimanosto@lahtiurheilu.fi',
-  },
-  {
-    id: 156,
-    name: 'Helsinkin JalkapalloFestival 2026',
-    city: 'Helsinki',
-    date: '2026-07-27',
-    sport: 'Jalkapallo',
-    status: 'published',
-    organizer: 'Helsinki Jalkapallo Urheilijat',
-    description: 'Helsinkin perinteinen jalkapallofestival kerää osallistujia ympäri Suomen.',
-    participants: 785,
-    contact: 'jalkapallo@helsinkiurheilu.fi',
-  },
-  {
-    id: 157,
-    name: 'Espoon LentopalloMestaruudet 2026',
-    city: 'Espoo',
-    date: '2026-07-28',
-    sport: 'Lentopallo',
-    status: 'published',
-    organizer: 'Espoo Lentopallo Athletics',
-    description: 'Vuosittainen lentopallo mestaruudet Espoossa. Tervetuloa mukaan!',
-    participants: 1785,
-    contact: 'lentopallo@espoourheilu.fi',
-  },
-  {
-    id: 158,
-    name: 'Tamperen HiihtoCup 2026',
-    city: 'Tampere',
-    date: '2026-07-29',
-    sport: 'Hiihto',
-    status: 'submitted',
-    organizer: 'Tampere Hiihto Seura',
-    description: 'Tamperen hiihtocup on alueen suurin urheilutapahtuma.',
-    participants: 0,
-    contact: 'hiihto@tampereurheilu.fi',
-  },
-  {
-    id: 159,
-    name: 'Turkun JuoksuCup 2026',
-    city: 'Turku',
-    date: '2026-07-30',
-    sport: 'Juoksu',
-    status: 'published',
-    organizer: 'Turku Juoksu Athletics',
-    description: 'Kansallinen juoksu cup järjestetään Turkussa.',
-    participants: 1286,
-    contact: 'juoksu@turkuurheilu.fi',
-  },
-  {
-    id: 160,
-    name: 'Oulun UintiGala 2026',
-    city: 'Oulu',
-    date: '2026-07-31',
-    sport: 'Uinti',
-    status: 'approved',
-    organizer: 'Oulu Uinti Urheilijat',
-    description: 'Uinti gala Oulussa – kaikentasoisille urheilijoille.',
-    participants: 0,
-    contact: 'uinti@ouluurheilu.fi',
-  },
-  {
-    id: 161,
-    name: 'Espoon SuunnistusViikko 2026',
-    city: 'Espoo',
-    date: '2026-08-01',
-    sport: 'Suunnistus',
-    status: 'approved',
-    organizer: 'Espoo Suunnistus Seura',
-    description: 'Espoon perinteinen suunnistusviikko kerää osallistujia ympäri Suomen.',
-    participants: 0,
-    contact: 'suunnistus@espoourheilu.fi',
-  },
-  {
-    id: 162,
-    name: 'Tamperen TriathlonCup 2026',
-    city: 'Tampere',
-    date: '2026-08-01',
-    sport: 'Triathlon',
-    status: 'review',
-    organizer: 'Tampere Triathlon Urheiluseura',
-    description: 'Vuosittainen triathlon cup Tamperessa. Tervetuloa mukaan!',
-    participants: 0,
-    contact: 'triathlon@tampereurheilu.fi',
-  },
-  {
-    id: 163,
-    name: 'Turkun TennisTurnaus 2026',
-    city: 'Turku',
-    date: '2026-08-02',
-    sport: 'Tennis',
-    status: 'review',
-    organizer: 'Turku Tennis Klubi',
-    description: 'Turkun tennisturnaus on alueen suurin urheilutapahtuma.',
-    participants: 0,
-    contact: 'tennis@turkuurheilu.fi',
-  },
-  {
-    id: 164,
-    name: 'Oulun YleisurheiluGala 2026',
-    city: 'Oulu',
-    date: '2026-08-03',
-    sport: 'Yleisurheilu',
-    status: 'submitted',
-    organizer: 'Oulu Yleisurheilu Athletics',
-    description: 'Kansallinen yleisurheilu gala järjestetään Oulussa.',
-    participants: 0,
-    contact: 'yleisurheilu@ouluurheilu.fi',
-  },
-  {
-    id: 165,
-    name: 'Jyväskylän MelontaKoskikisat 2026',
-    city: 'Jyväskylä',
-    date: '2026-08-04',
-    sport: 'Melonta',
-    status: 'submitted',
-    organizer: 'Jyväskylä Melonta Seura',
-    description: 'Melonta koskikisat Jyväskylässa – kaikentasoisille urheilijoille.',
-    participants: 0,
-    contact: 'melonta@jyvaskylaurheilu.fi',
-  },
-  {
-    id: 166,
-    name: 'Lahtin GolfCup 2026',
-    city: 'Lahti',
-    date: '2026-08-04',
-    sport: 'Golf',
-    status: 'draft',
-    organizer: 'Lahti Golf Klubi',
-    description: 'Lahtin perinteinen golfcup kerää osallistujia ympäri Suomen.',
-    participants: 0,
-    contact: 'golf@lahtiurheilu.fi',
-  },
-  {
-    id: 167,
-    name: 'Helsinkin VoimanostoCup 2026',
-    city: 'Helsinki',
-    date: '2026-08-05',
-    sport: 'Voimanosto',
-    status: 'draft',
-    organizer: 'Helsinki Voimanosto Club',
-    description: 'Vuosittainen voimanosto cup Helsinkissa. Tervetuloa mukaan!',
-    participants: 0,
-    contact: 'voimanosto@helsinkiurheilu.fi',
-  },
-  {
-    id: 168,
-    name: 'Espoon JalkapalloFestival 2026',
-    city: 'Espoo',
-    date: '2026-08-06',
-    sport: 'Jalkapallo',
-    status: 'review',
-    organizer: 'Espoo Jalkapallo Club',
-    description: 'Espoon jalkapallofestival on alueen suurin urheilutapahtuma.',
-    participants: 0,
-    contact: 'jalkapallo@espoourheilu.fi',
-  },
-  {
-    id: 169,
-    name: 'Tamperen LentopalloMestaruudet 2026',
-    city: 'Tampere',
-    date: '2026-08-07',
-    sport: 'Lentopallo',
-    status: 'published',
-    organizer: 'Tampere Lentopallo Klubi',
-    description: 'Kansallinen lentopallo mestaruudet järjestetään Tamperessa.',
-    participants: 1702,
-    contact: 'lentopallo@tampereurheilu.fi',
-  },
-  {
-    id: 170,
-    name: 'Turkun HiihtoCup 2026',
-    city: 'Turku',
-    date: '2026-08-07',
-    sport: 'Hiihto',
-    status: 'approved',
-    organizer: 'Turku Hiihto Urheilijat',
-    description: 'Hiihto cup Turkussa – kaikentasoisille urheilijoille.',
-    participants: 0,
-    contact: 'hiihto@turkuurheilu.fi',
-  },
-  {
-    id: 171,
-    name: 'Oulun JuoksuCup 2026',
-    city: 'Oulu',
-    date: '2026-08-08',
-    sport: 'Juoksu',
-    status: 'published',
-    organizer: 'Oulu Juoksu Athletics',
-    description: 'Oulun perinteinen juoksucup kerää osallistujia ympäri Suomen.',
-    participants: 1544,
-    contact: 'juoksu@ouluurheilu.fi',
-  },
-  {
-    id: 172,
-    name: 'Jyväskylän UintiGala 2026',
-    city: 'Jyväskylä',
-    date: '2026-08-09',
-    sport: 'Uinti',
-    status: 'submitted',
-    organizer: 'Jyväskylä Uinti Club',
-    description: 'Vuosittainen uinti gala Jyväskylässa. Tervetuloa mukaan!',
-    participants: 0,
-    contact: 'uinti@jyvaskylaurheilu.fi',
-  },
-  {
-    id: 173,
-    name: 'Lahtin PyöräilyCup 2026',
-    city: 'Lahti',
-    date: '2026-08-10',
-    sport: 'Pyöräily',
-    status: 'approved',
-    organizer: 'Lahti Pyöräily Urheiluseura',
-    description: 'Lahtin pyöräilycup on alueen suurin urheilutapahtuma.',
-    participants: 0,
-    contact: 'pyoraily@lahtiurheilu.fi',
-  },
-  {
-    id: 174,
-    name: 'Helsinkin SuunnistusMestaruudet 2026',
-    city: 'Helsinki',
-    date: '2026-08-11',
-    sport: 'Suunnistus',
-    status: 'approved',
-    organizer: 'Helsinki Suunnistus Athletics',
-    description: 'Kansallinen suunnistus mestaruudet järjestetään Helsinkissa.',
-    participants: 0,
-    contact: 'suunnistus@helsinkiurheilu.fi',
-  },
-  {
-    id: 175,
-    name: 'Espoon TriathlonKisat 2026',
-    city: 'Espoo',
-    date: '2026-08-11',
-    sport: 'Triathlon',
-    status: 'approved',
-    organizer: 'Espoo Triathlon Klubi',
-    description: 'Triathlon kisat Espoossa – kaikentasoisille urheilijoille.',
-    participants: 0,
-    contact: 'triathlon@espoourheilu.fi',
-  },
-  {
-    id: 176,
-    name: 'Tamperen TennisOpen 2026',
-    city: 'Tampere',
-    date: '2026-08-12',
-    sport: 'Tennis',
-    status: 'review',
-    organizer: 'Tampere Tennis Urheilijat',
-    description: 'Tamperen perinteinen tennisopen kerää osallistujia ympäri Suomen.',
-    participants: 0,
-    contact: 'tennis@tampereurheilu.fi',
-  },
-  {
-    id: 177,
-    name: 'Turkun YleisurheiluKisat 2026 (2)',
-    city: 'Turku',
-    date: '2026-08-13',
-    sport: 'Yleisurheilu',
-    status: 'review',
-    organizer: 'Turku Yleisurheilu Urheilijat',
-    description: 'Vuosittainen yleisurheilu kisat Turkussa. Tervetuloa mukaan!',
-    participants: 0,
-    contact: 'yleisurheilu@turkuurheilu.fi',
-  },
-  {
-    id: 178,
-    name: 'Oulun MelontaCup 2026 (2)',
-    city: 'Oulu',
-    date: '2026-08-14',
-    sport: 'Melonta',
-    status: 'submitted',
-    organizer: 'Oulu Melonta Urheilijat',
-    description: 'Oulun melontacup on alueen suurin urheilutapahtuma.',
-    participants: 0,
-    contact: 'melonta@ouluurheilu.fi',
-  },
-  {
-    id: 179,
-    name: 'Jyväskylän GolfMestaruudet 2026 (2)',
-    city: 'Jyväskylä',
-    date: '2026-08-14',
-    sport: 'Golf',
-    status: 'submitted',
-    organizer: 'Jyväskylä Golf Urheiluseura',
-    description: 'Kansallinen golf mestaruudet järjestetään Jyväskylässa.',
-    participants: 0,
-    contact: 'golf@jyvaskylaurheilu.fi',
-  },
-  {
-    id: 180,
-    name: 'Lahtin VoimanostoKisat 2026 (2)',
-    city: 'Lahti',
-    date: '2026-08-15',
-    sport: 'Voimanosto',
-    status: 'draft',
-    organizer: 'Lahti Voimanosto Club',
-    description: 'Voimanosto kisat Lahtissa – kaikentasoisille urheilijoille.',
-    participants: 0,
-    contact: 'voimanosto@lahtiurheilu.fi',
-  },
-  {
-    id: 181,
-    name: 'Helsinkin JalkapalloCup 2026 (2)',
-    city: 'Helsinki',
-    date: '2026-08-16',
-    sport: 'Jalkapallo',
-    status: 'draft',
-    organizer: 'Helsinki Jalkapallo Urheilijat',
-    description: 'Helsinkin perinteinen jalkapallocup kerää osallistujia ympäri Suomen.',
-    participants: 0,
-    contact: 'jalkapallo@helsinkiurheilu.fi',
-  },
-  {
-    id: 182,
-    name: 'Espoon LentopalloCup 2026 (2)',
-    city: 'Espoo',
-    date: '2026-08-17',
-    sport: 'Lentopallo',
-    status: 'rejected',
-    organizer: 'Espoo Lentopallo Athletics',
-    description: 'Vuosittainen lentopallo cup Espoossa. Tervetuloa mukaan!',
-    participants: 0,
-    contact: 'lentopallo@espoourheilu.fi',
-  },
-  {
-    id: 183,
-    name: 'Tamperen HiihtoKisat 2026 (2)',
-    city: 'Tampere',
-    date: '2026-08-17',
-    sport: 'Hiihto',
-    status: 'published',
-    organizer: 'Tampere Hiihto Seura',
-    description: 'Tamperen hiihtokisat on alueen suurin urheilutapahtuma.',
-    participants: 1148,
-    contact: 'hiihto@tampereurheilu.fi',
-  },
-  {
-    id: 184,
-    name: 'Turkun JuoksuJuoksukisat 2026 (2)',
-    city: 'Turku',
-    date: '2026-08-18',
-    sport: 'Juoksu',
-    status: 'draft',
-    organizer: 'Turku Juoksu Athletics',
-    description: 'Kansallinen juoksu juoksukisat järjestetään Turkussa.',
-    participants: 0,
-    contact: 'juoksu@turkuurheilu.fi',
-  },
-  {
-    id: 185,
-    name: 'Oulun UintiKisat 2026 (2)',
-    city: 'Oulu',
-    date: '2026-08-19',
-    sport: 'Uinti',
-    status: 'published',
-    organizer: 'Oulu Uinti Urheilijat',
-    description: 'Uinti kisat Oulussa – kaikentasoisille urheilijoille.',
-    participants: 1938,
-    contact: 'uinti@ouluurheilu.fi',
-  },
-  {
-    id: 186,
-    name: 'Jyväskylän PyöräilyYmpäriajo 2026 (2)',
-    city: 'Jyväskylä',
-    date: '2026-08-20',
-    sport: 'Pyöräily',
-    status: 'approved',
-    organizer: 'Jyväskylä Pyöräily Athletics',
-    description: 'Jyväskylän perinteinen pyöräilyympäriajo kerää osallistujia ympäri Suomen.',
-    participants: 0,
-    contact: 'pyoraily@jyvaskylaurheilu.fi',
-  },
-  {
-    id: 187,
-    name: 'Lahtin SuunnistusCup 2026',
-    city: 'Lahti',
-    date: '2026-08-21',
-    sport: 'Suunnistus',
-    status: 'published',
-    organizer: 'Lahti Suunnistus Klubi',
-    description: 'Vuosittainen suunnistus cup Lahtissa. Tervetuloa mukaan!',
-    participants: 211,
-    contact: 'suunnistus@lahtiurheilu.fi',
-  },
-  {
-    id: 188,
-    name: 'Helsinkin TriathlonIronman 2026',
-    city: 'Helsinki',
-    date: '2026-08-21',
-    sport: 'Triathlon',
-    status: 'approved',
-    organizer: 'Helsinki Triathlon Athletics',
-    description: 'Helsinkin triathlonironman on alueen suurin urheilutapahtuma.',
-    participants: 0,
-    contact: 'triathlon@helsinkiurheilu.fi',
-  },
-  {
-    id: 189,
-    name: 'Espoon TennisMestaruudet 2026',
-    city: 'Espoo',
-    date: '2026-08-22',
-    sport: 'Tennis',
-    status: 'approved',
-    organizer: 'Espoo Tennis Club',
-    description: 'Kansallinen tennis mestaruudet järjestetään Espoossa.',
-    participants: 0,
-    contact: 'tennis@espoourheilu.fi',
-  },
-  {
-    id: 190,
-    name: 'Tamperen YleisurheiluMestaruudet 2026',
-    city: 'Tampere',
-    date: '2026-08-23',
-    sport: 'Yleisurheilu',
-    status: 'approved',
-    organizer: 'Tampere Yleisurheilu Seura',
-    description: 'Yleisurheilu mestaruudet Tamperessa – kaikentasoisille urheilijoille.',
-    participants: 0,
-    contact: 'yleisurheilu@tampereurheilu.fi',
-  },
-  {
-    id: 191,
-    name: 'Turkun MelontaMestaruudet 2026',
-    city: 'Turku',
-    date: '2026-08-24',
-    sport: 'Melonta',
-    status: 'review',
-    organizer: 'Turku Melonta Seura',
-    description: 'Turkun perinteinen melontamestaruudet kerää osallistujia ympäri Suomen.',
-    participants: 0,
-    contact: 'melonta@turkuurheilu.fi',
-  },
-  {
-    id: 192,
-    name: 'Oulun GolfTurnaus 2026',
-    city: 'Oulu',
-    date: '2026-08-24',
-    sport: 'Golf',
-    status: 'review',
-    organizer: 'Oulu Golf Klubi',
-    description: 'Vuosittainen golf turnaus Oulussa. Tervetuloa mukaan!',
-    participants: 0,
-    contact: 'golf@ouluurheilu.fi',
-  },
-  {
-    id: 193,
-    name: 'Jyväskylän VoimanostoLiiga 2026',
-    city: 'Jyväskylä',
-    date: '2026-08-25',
-    sport: 'Voimanosto',
-    status: 'submitted',
-    organizer: 'Jyväskylä Voimanosto Urheiluseura',
-    description: 'Jyväskylän voimanostoliiga on alueen suurin urheilutapahtuma.',
-    participants: 0,
-    contact: 'voimanosto@jyvaskylaurheilu.fi',
-  },
-  {
-    id: 194,
-    name: 'Lahtin JalkapalloTurnaus 2026',
-    city: 'Lahti',
-    date: '2026-08-26',
-    sport: 'Jalkapallo',
-    status: 'draft',
-    organizer: 'Lahti Jalkapallo Urheiluseura',
-    description: 'Kansallinen jalkapallo turnaus järjestetään Lahtissa.',
-    participants: 0,
-    contact: 'jalkapallo@lahtiurheilu.fi',
-  },
-  {
-    id: 195,
-    name: 'Helsinkin LentopalloTurnaus 2026',
-    city: 'Helsinki',
-    date: '2026-08-27',
-    sport: 'Lentopallo',
-    status: 'draft',
-    organizer: 'Helsinki Lentopallo Club',
-    description: 'Lentopallo turnaus Helsinkissa – kaikentasoisille urheilijoille.',
-    participants: 0,
-    contact: 'lentopallo@helsinkiurheilu.fi',
-  },
-  {
-    id: 196,
-    name: 'Espoon HiihtoMestaruudet 2026',
-    city: 'Espoo',
-    date: '2026-08-27',
-    sport: 'Hiihto',
-    status: 'rejected',
-    organizer: 'Espoo Hiihto Club',
-    description: 'Espoon perinteinen hiihtomestaruudet kerää osallistujia ympäri Suomen.',
-    participants: 0,
-    contact: 'hiihto@espoourheilu.fi',
-  },
-  {
-    id: 197,
-    name: 'Tamperen JuoksuMaraton 2026',
-    city: 'Tampere',
-    date: '2026-08-28',
-    sport: 'Juoksu',
-    status: 'review',
-    organizer: 'Tampere Juoksu Athletics',
-    description: 'Vuosittainen juoksu maraton Tamperessa. Tervetuloa mukaan!',
-    participants: 0,
-    contact: 'juoksu@tampereurheilu.fi',
-  },
-  {
-    id: 198,
-    name: 'Turkun UintiMestaruudet 2026',
-    city: 'Turku',
-    date: '2026-08-29',
-    sport: 'Uinti',
-    status: 'published',
-    organizer: 'Turku Uinti Urheiluseura',
-    description: 'Turkun uintimestaruudet on alueen suurin urheilutapahtuma.',
-    participants: 650,
-    contact: 'uinti@turkuurheilu.fi',
-  },
-  {
-    id: 199,
-    name: 'Oulun PyöräilyKisat 2026',
-    city: 'Oulu',
-    date: '2026-08-30',
-    sport: 'Pyöräily',
-    status: 'published',
-    organizer: 'Oulu Pyöräily Urheiluseura',
-    description: 'Kansallinen pyöräily kisat järjestetään Oulussa.',
-    participants: 1748,
-    contact: 'pyoraily@ouluurheilu.fi',
-  },
-  {
-    id: 200,
-    name: 'Jyväskylän SuunnistusSprint 2026',
-    city: 'Jyväskylä',
-    date: '2026-08-31',
-    sport: 'Suunnistus',
-    status: 'published',
-    organizer: 'Jyväskylä Suunnistus Urheiluseura',
-    description: 'Suunnistus sprint Jyväskylässa – kaikentasoisille urheilijoille.',
-    participants: 1337,
-    contact: 'suunnistus@jyvaskylaurheilu.fi',
-  },
-  {
-    id: 201,
-    name: 'Tamperen TennisMestaruudet 2026',
-    city: 'Tampere',
-    date: '2026-09-01',
-    sport: 'Tennis',
-    status: 'published',
-    organizer: 'Tampere Tennis Urheilijat',
-    description: 'Tamperen perinteinen tennismestaruudet kerää osallistujia ympäri Suomen.',
-    participants: 1316,
-    contact: 'tennis@tampereurheilu.fi',
-  },
-  {
-    id: 202,
-    name: 'Turkun YleisurheiluMestaruudet 2026',
-    city: 'Turku',
-    date: '2026-09-01',
-    sport: 'Yleisurheilu',
-    status: 'approved',
-    organizer: 'Turku Yleisurheilu Urheilijat',
-    description: 'Vuosittainen yleisurheilu mestaruudet Turkussa. Tervetuloa mukaan!',
-    participants: 0,
-    contact: 'yleisurheilu@turkuurheilu.fi',
-  },
-  {
-    id: 203,
-    name: 'Oulun MelontaMestaruudet 2026',
-    city: 'Oulu',
-    date: '2026-09-02',
-    sport: 'Melonta',
-    status: 'approved',
-    organizer: 'Oulu Melonta Urheilijat',
-    description: 'Oulun melontamestaruudet on alueen suurin urheilutapahtuma.',
-    participants: 0,
-    contact: 'melonta@ouluurheilu.fi',
-  },
-  {
-    id: 204,
-    name: 'Jyväskylän GolfTurnaus 2026',
-    city: 'Jyväskylä',
-    date: '2026-09-03',
-    sport: 'Golf',
-    status: 'review',
-    organizer: 'Jyväskylä Golf Urheiluseura',
-    description: 'Kansallinen golf turnaus järjestetään Jyväskylässa.',
-    participants: 0,
-    contact: 'golf@jyvaskylaurheilu.fi',
-  },
-  {
-    id: 205,
-    name: 'Lahtin VoimanostoLiiga 2026',
-    city: 'Lahti',
-    date: '2026-09-03',
-    sport: 'Voimanosto',
-    status: 'review',
-    organizer: 'Lahti Voimanosto Club',
-    description: 'Voimanosto liiga Lahtissa – kaikentasoisille urheilijoille.',
-    participants: 0,
-    contact: 'voimanosto@lahtiurheilu.fi',
-  },
-  {
-    id: 206,
-    name: 'Helsinkin JalkapalloTurnaus 2026',
-    city: 'Helsinki',
-    date: '2026-09-04',
-    sport: 'Jalkapallo',
-    status: 'review',
-    organizer: 'Helsinki Jalkapallo Urheilijat',
-    description: 'Helsinkin perinteinen jalkapalloturnaus kerää osallistujia ympäri Suomen.',
-    participants: 0,
-    contact: 'jalkapallo@helsinkiurheilu.fi',
-  },
-  {
-    id: 207,
-    name: 'Espoon LentopalloTurnaus 2026',
-    city: 'Espoo',
-    date: '2026-09-05',
-    sport: 'Lentopallo',
-    status: 'submitted',
-    organizer: 'Espoo Lentopallo Athletics',
-    description: 'Vuosittainen lentopallo turnaus Espoossa. Tervetuloa mukaan!',
-    participants: 0,
-    contact: 'lentopallo@espoourheilu.fi',
-  },
-  {
-    id: 208,
-    name: 'Tamperen HiihtoMestaruudet 2026',
-    city: 'Tampere',
-    date: '2026-09-06',
-    sport: 'Hiihto',
-    status: 'draft',
-    organizer: 'Tampere Hiihto Seura',
-    description: 'Tamperen hiihtomestaruudet on alueen suurin urheilutapahtuma.',
-    participants: 0,
-    contact: 'hiihto@tampereurheilu.fi',
-  },
-  {
-    id: 209,
-    name: 'Turkun JuoksuMaraton 2026',
-    city: 'Turku',
-    date: '2026-09-06',
-    sport: 'Juoksu',
-    status: 'draft',
-    organizer: 'Turku Juoksu Athletics',
-    description: 'Kansallinen juoksu maraton järjestetään Turkussa.',
-    participants: 0,
-    contact: 'juoksu@turkuurheilu.fi',
-  },
-  {
-    id: 210,
-    name: 'Oulun UintiMestaruudet 2026',
-    city: 'Oulu',
-    date: '2026-09-07',
-    sport: 'Uinti',
-    status: 'rejected',
-    organizer: 'Oulu Uinti Urheilijat',
-    description: 'Uinti mestaruudet Oulussa – kaikentasoisille urheilijoille.',
-    participants: 0,
-    contact: 'uinti@ouluurheilu.fi',
-  },
-  {
-    id: 211,
-    name: 'Jyväskylän PyöräilyKisat 2026',
-    city: 'Jyväskylä',
-    date: '2026-09-08',
-    sport: 'Pyöräily',
-    status: 'published',
-    organizer: 'Jyväskylä Pyöräily Athletics',
-    description: 'Jyväskylän perinteinen pyöräilykisat kerää osallistujia ympäri Suomen.',
-    participants: 1863,
-    contact: 'pyoraily@jyvaskylaurheilu.fi',
-  },
-  {
-    id: 212,
-    name: 'Lahtin SuunnistusSprint 2026',
-    city: 'Lahti',
-    date: '2026-09-09',
-    sport: 'Suunnistus',
-    status: 'published',
-    organizer: 'Lahti Suunnistus Klubi',
-    description: 'Vuosittainen suunnistus sprint Lahtissa. Tervetuloa mukaan!',
-    participants: 1814,
-    contact: 'suunnistus@lahtiurheilu.fi',
-  },
-  {
-    id: 213,
-    name: 'Helsinkin TriathlonFestivaali 2026',
-    city: 'Helsinki',
-    date: '2026-09-09',
-    sport: 'Triathlon',
-    status: 'published',
-    organizer: 'Helsinki Triathlon Athletics',
-    description: 'Helsinkin triathlonfestivaali on alueen suurin urheilutapahtuma.',
-    participants: 790,
-    contact: 'triathlon@helsinkiurheilu.fi',
-  },
-  {
-    id: 214,
-    name: 'Espoon TennisCup 2026',
-    city: 'Espoo',
-    date: '2026-09-10',
-    sport: 'Tennis',
-    status: 'published',
-    organizer: 'Espoo Tennis Club',
-    description: 'Kansallinen tennis cup järjestetään Espoossa.',
-    participants: 1232,
-    contact: 'tennis@espoourheilu.fi',
-  },
-  {
-    id: 215,
-    name: 'Tamperen YleisurheiluCup 2026',
-    city: 'Tampere',
-    date: '2026-09-11',
-    sport: 'Yleisurheilu',
-    status: 'published',
-    organizer: 'Tampere Yleisurheilu Seura',
-    description: 'Yleisurheilu cup Tamperessa – kaikentasoisille urheilijoille.',
-    participants: 443,
-    contact: 'yleisurheilu@tampereurheilu.fi',
-  },
-  {
-    id: 216,
-    name: 'Turkun MelontaRetki 2026',
-    city: 'Turku',
-    date: '2026-09-12',
-    sport: 'Melonta',
-    status: 'approved',
-    organizer: 'Turku Melonta Seura',
-    description: 'Turkun perinteinen melontaretki kerää osallistujia ympäri Suomen.',
-    participants: 0,
-    contact: 'melonta@turkuurheilu.fi',
-  },
-  {
-    id: 217,
-    name: 'Oulun GolfOpen 2026 (2)',
-    city: 'Oulu',
-    date: '2026-09-12',
-    sport: 'Golf',
-    status: 'approved',
-    organizer: 'Oulu Golf Klubi',
-    description: 'Vuosittainen golf open Oulussa. Tervetuloa mukaan!',
-    participants: 0,
-    contact: 'golf@ouluurheilu.fi',
-  },
-  {
-    id: 218,
-    name: 'Jyväskylän VoimanostoMestaruudet 2026 (2)',
-    city: 'Jyväskylä',
-    date: '2026-09-13',
-    sport: 'Voimanosto',
-    status: 'approved',
-    organizer: 'Jyväskylä Voimanosto Urheiluseura',
-    description: 'Jyväskylän voimanostomestaruudet on alueen suurin urheilutapahtuma.',
-    participants: 0,
-    contact: 'voimanosto@jyvaskylaurheilu.fi',
-  },
-  {
-    id: 219,
-    name: 'Lahtin JalkapalloMestaruudet 2026 (2)',
-    city: 'Lahti',
-    date: '2026-09-14',
-    sport: 'Jalkapallo',
-    status: 'review',
-    organizer: 'Lahti Jalkapallo Urheiluseura',
-    description: 'Kansallinen jalkapallo mestaruudet järjestetään Lahtissa.',
-    participants: 0,
-    contact: 'jalkapallo@lahtiurheilu.fi',
-  },
-  {
-    id: 220,
-    name: 'Helsinkin LentopalloFestival 2026 (2)',
-    city: 'Helsinki',
-    date: '2026-09-15',
-    sport: 'Lentopallo',
-    status: 'review',
-    organizer: 'Helsinki Lentopallo Club',
-    description: 'Lentopallo festival Helsinkissa – kaikentasoisille urheilijoille.',
-    participants: 0,
-    contact: 'lentopallo@helsinkiurheilu.fi',
-  },
-  {
-    id: 221,
-    name: 'Espoon HiihtoMaraton 2026 (2)',
-    city: 'Espoo',
-    date: '2026-09-15',
-    sport: 'Hiihto',
-    status: 'submitted',
-    organizer: 'Espoo Hiihto Club',
-    description: 'Espoon perinteinen hiihtomaraton kerää osallistujia ympäri Suomen.',
-    participants: 0,
-    contact: 'hiihto@espoourheilu.fi',
-  },
-  {
-    id: 222,
-    name: 'Tamperen JuoksuPuolimaraton 2026 (2)',
-    city: 'Tampere',
-    date: '2026-09-16',
-    sport: 'Juoksu',
-    status: 'draft',
-    organizer: 'Tampere Juoksu Athletics',
-    description: 'Vuosittainen juoksu puolimaraton Tamperessa. Tervetuloa mukaan!',
-    participants: 0,
-    contact: 'juoksu@tampereurheilu.fi',
-  },
-  {
-    id: 223,
-    name: 'Turkun UintiCup 2026 (2)',
-    city: 'Turku',
-    date: '2026-09-17',
-    sport: 'Uinti',
-    status: 'draft',
-    organizer: 'Turku Uinti Urheiluseura',
-    description: 'Turkun uinticup on alueen suurin urheilutapahtuma.',
-    participants: 0,
-    contact: 'uinti@turkuurheilu.fi',
-  },
-  {
-    id: 224,
-    name: 'Oulun PyöräilyFestivaali 2026 (2)',
-    city: 'Oulu',
-    date: '2026-09-18',
-    sport: 'Pyöräily',
-    status: 'rejected',
-    organizer: 'Oulu Pyöräily Urheiluseura',
-    description: 'Kansallinen pyöräily festivaali järjestetään Oulussa.',
-    participants: 0,
-    contact: 'pyoraily@ouluurheilu.fi',
-  },
-  {
-    id: 225,
-    name: 'Jyväskylän SuunnistusViikko 2026 (2)',
-    city: 'Jyväskylä',
-    date: '2026-09-18',
-    sport: 'Suunnistus',
-    status: 'published',
-    organizer: 'Jyväskylä Suunnistus Urheiluseura',
-    description: 'Suunnistus viikko Jyväskylässa – kaikentasoisille urheilijoille.',
-    participants: 1492,
-    contact: 'suunnistus@jyvaskylaurheilu.fi',
-  },
-  {
-    id: 226,
-    name: 'Lahtin TriathlonCup 2026 (2)',
-    city: 'Lahti',
-    date: '2026-09-19',
-    sport: 'Triathlon',
-    status: 'published',
-    organizer: 'Lahti Triathlon Urheiluseura',
-    description: 'Lahtin perinteinen triathloncup kerää osallistujia ympäri Suomen.',
-    participants: 192,
-    contact: 'triathlon@lahtiurheilu.fi',
-  },
-  {
-    id: 227,
-    name: 'Helsinkin TennisTurnaus 2026 (2)',
-    city: 'Helsinki',
-    date: '2026-09-20',
-    sport: 'Tennis',
-    status: 'published',
-    organizer: 'Helsinki Tennis Club',
-    description: 'Vuosittainen tennis turnaus Helsinkissa. Tervetuloa mukaan!',
-    participants: 143,
-    contact: 'tennis@helsinkiurheilu.fi',
-  },
-  {
-    id: 228,
-    name: 'Espoon YleisurheiluGala 2026 (2)',
-    city: 'Espoo',
-    date: '2026-09-21',
-    sport: 'Yleisurheilu',
-    status: 'published',
-    organizer: 'Espoo Yleisurheilu Seura',
-    description: 'Espoon yleisurheilugala on alueen suurin urheilutapahtuma.',
-    participants: 1404,
-    contact: 'yleisurheilu@espoourheilu.fi',
-  },
-  {
-    id: 229,
-    name: 'Tamperen MelontaKoskikisat 2026 (2)',
-    city: 'Tampere',
-    date: '2026-09-21',
-    sport: 'Melonta',
-    status: 'published',
-    organizer: 'Tampere Melonta Athletics',
-    description: 'Kansallinen melonta koskikisat järjestetään Tamperessa.',
-    participants: 516,
-    contact: 'melonta@tampereurheilu.fi',
-  },
-  {
-    id: 230,
-    name: 'Turkun GolfCup 2026 (2)',
-    city: 'Turku',
-    date: '2026-09-22',
-    sport: 'Golf',
-    status: 'approved',
-    organizer: 'Turku Golf Athletics',
-    description: 'Golf cup Turkussa – kaikentasoisille urheilijoille.',
-    participants: 0,
-    contact: 'golf@turkuurheilu.fi',
-  },
-  {
-    id: 231,
-    name: 'Oulun VoimanostoCup 2026 (2)',
-    city: 'Oulu',
-    date: '2026-09-23',
-    sport: 'Voimanosto',
-    status: 'approved',
-    organizer: 'Oulu Voimanosto Seura',
-    description: 'Oulun perinteinen voimanostocup kerää osallistujia ympäri Suomen.',
-    participants: 0,
-    contact: 'voimanosto@ouluurheilu.fi',
-  },
-  {
-    id: 232,
-    name: 'Jyväskylän JalkapalloFestival 2026 (2)',
-    city: 'Jyväskylä',
-    date: '2026-09-24',
-    sport: 'Jalkapallo',
-    status: 'approved',
-    organizer: 'Jyväskylä Jalkapallo Athletics',
-    description: 'Vuosittainen jalkapallo festival Jyväskylässa. Tervetuloa mukaan!',
-    participants: 0,
-    contact: 'jalkapallo@jyvaskylaurheilu.fi',
-  },
-  {
-    id: 233,
-    name: 'Lahtin LentopalloMestaruudet 2026 (2)',
-    city: 'Lahti',
-    date: '2026-09-24',
-    sport: 'Lentopallo',
-    status: 'review',
-    organizer: 'Lahti Lentopallo Club',
-    description: 'Lahtin lentopallomestaruudet on alueen suurin urheilutapahtuma.',
-    participants: 0,
-    contact: 'lentopallo@lahtiurheilu.fi',
-  },
-  {
-    id: 234,
-    name: 'Helsinkin HiihtoCup 2026 (2)',
-    city: 'Helsinki',
-    date: '2026-09-25',
-    sport: 'Hiihto',
-    status: 'review',
-    organizer: 'Helsinki Hiihto Klubi',
-    description: 'Kansallinen hiihto cup järjestetään Helsinkissa.',
-    participants: 0,
-    contact: 'hiihto@helsinkiurheilu.fi',
-  },
-  {
-    id: 235,
-    name: 'Espoon JuoksuCup 2026 (2)',
-    city: 'Espoo',
-    date: '2026-09-26',
-    sport: 'Juoksu',
-    status: 'submitted',
-    organizer: 'Espoo Juoksu Athletics',
-    description: 'Juoksu cup Espoossa – kaikentasoisille urheilijoille.',
-    participants: 0,
-    contact: 'juoksu@espoourheilu.fi',
-  },
-  {
-    id: 236,
-    name: 'Tamperen UintiGala 2026 (2)',
-    city: 'Tampere',
-    date: '2026-09-27',
-    sport: 'Uinti',
-    status: 'submitted',
-    organizer: 'Tampere Uinti Klubi',
-    description: 'Tamperen perinteinen uintigala kerää osallistujia ympäri Suomen.',
-    participants: 0,
-    contact: 'uinti@tampereurheilu.fi',
-  },
-  {
-    id: 237,
-    name: 'Turkun PyöräilyCup 2026 (2)',
-    city: 'Turku',
-    date: '2026-09-27',
-    sport: 'Pyöräily',
-    status: 'draft',
-    organizer: 'Turku Pyöräily Urheilijat',
-    description: 'Vuosittainen pyöräily cup Turkussa. Tervetuloa mukaan!',
-    participants: 0,
-    contact: 'pyoraily@turkuurheilu.fi',
-  },
-  {
-    id: 238,
-    name: 'Oulun SuunnistusMestaruudet 2026 (2)',
-    city: 'Oulu',
-    date: '2026-09-28',
-    sport: 'Suunnistus',
-    status: 'draft',
-    organizer: 'Oulu Suunnistus Seura',
-    description: 'Oulun suunnistusmestaruudet on alueen suurin urheilutapahtuma.',
-    participants: 0,
-    contact: 'suunnistus@ouluurheilu.fi',
-  },
-  {
-    id: 239,
-    name: 'Jyväskylän TriathlonKisat 2026 (2)',
-    city: 'Jyväskylä',
-    date: '2026-09-29',
-    sport: 'Triathlon',
-    status: 'published',
-    organizer: 'Jyväskylä Triathlon Klubi',
-    description: 'Kansallinen triathlon kisat järjestetään Jyväskylässa.',
-    participants: 1633,
-    contact: 'triathlon@jyvaskylaurheilu.fi',
-  },
-  {
-    id: 240,
-    name: 'Lahtin TennisOpen 2026 (2)',
-    city: 'Lahti',
-    date: '2026-09-30',
-    sport: 'Tennis',
-    status: 'published',
-    organizer: 'Lahti Tennis Club',
-    description: 'Tennis open Lahtissa – kaikentasoisille urheilijoille.',
-    participants: 642,
-    contact: 'tennis@lahtiurheilu.fi',
-  },
-];
+const COMPETITIONS_CSV_RAW = `Kilpailun aloituspäivämäärä;Kilpailun päätöspäivämäärä;Kilpailun nimi;Kilpailun taso;Kilpailupaikkakunta;Rata;Järjestäjä;TD:n nimi;TD:n PDGA-numero;TD:n sähköposti;Kilpailun sähköposti;Kilpailun verkkosivut;Pelaajamäärä (max);Väylien määrä;Kierrosten määrä
+2026-01-17;2026-01-17;Talvinen Open Helsinki;C-tier;Helsinki;Rantapuisto;Disc Golf Team Helsinki;Matti Virtanen;23456;matti@dgth.fi;info@dgth.fi;https://dgth.fi;72;18;2
+2026-01-24;2026-01-25;Tampere Winter Cup;C-tier;Tampere;Hämeenpuisto;Tampere Disc Golf ry;Pekka Mäkinen;12345;pekka@tadg.fi;info@tadg.fi;https://tadg.fi;72;18;2
+2026-02-07;2026-02-08;Turku Disc Open;B-tier;Turku;Kupittaa;Turun Frisbeegolfseura;Jari Leinonen;34567;jari@tfgs.fi;info@tfgs.fi;https://tfgs.fi;144;18;3
+2026-02-21;2026-02-22;Oulu Spring Open;C-tier;Oulu;Hietasaari;Oulun Frisbeegolfseura;Kari Nieminen;56789;kari@ofgs.fi;info@ofgs.fi;https://ofgs.fi;72;18;2
+2026-02-28;2026-03-01;Jyväskylä Spring Disc;C-tier;Jyväskylä;Laajavuori;Jyväskylän Frisbeegolfseura;Mikko Heikkinen;67890;mikko@jfgs.fi;info@jfgs.fi;https://jfgs.fi;72;18;2
+2026-03-07;2026-03-07;Lahti Open;C-tier;Lahti;Kariniemi;Lahden Frisbeegolf ry;Anna Mäkinen;78901;anna@ldfg.fi;info@ldfg.fi;https://ldfg.fi;72;18;2
+2026-03-14;2026-03-15;Helsinki DG League K1;L-tier;Helsinki;Viikki;Disc Golf Team Helsinki;Matti Virtanen;23456;matti@dgth.fi;liiga@dgth.fi;https://dgth.fi;48;18;1
+2026-03-21;2026-03-22;Espoo Spring Open;C-tier;Espoo;Pitkäjärvi;Disc Golf Espoo;Heikki Salonen;89012;heikki@dge.fi;info@dge.fi;https://dge.fi;72;18;2
+2026-03-28;2026-03-29;Finnish Amateur Open;B-tier;Tampere;Hämeenpuisto;Tampere Disc Golf ry;Pekka Mäkinen;12345;pekka@tadg.fi;fao@tadg.fi;https://fao.tadg.fi;144;18;3
+2026-04-04;2026-04-05;Kuopio Open;C-tier;Kuopio;Väinölänniemi;Kuopion Frisbeegolfklubi;Tuomo Paavola;90123;tuomo@kfgk.fi;info@kfgk.fi;https://kfgk.fi;72;18;2
+2026-04-11;2026-04-12;Joensuu Cup;C-tier;Joensuu;Rantakylä;Joensuun Frisbeegolfseura;Samuli Haataja;01234;samuli@jfgs.fi;info@jfgjoensuu.fi;https://jfgjoensuu.fi;72;18;2
+2026-04-18;2026-04-19;Pori Open;C-tier;Pori;Kirjurinluoto;Porin Frisbeegolfseura;Erkki Saarinen;11111;erkki@pfgs.fi;info@pfgs.fi;https://pfgs.fi;72;18;2
+2026-04-25;2026-04-26;Vaasa Spring Open;C-tier;Vaasa;Palosaari;Vaasan Frisbeegolfseura;Pirjo Mäkinen;22222;pirjo@vfgs.fi;info@vfgs.fi;https://vfgs.fi;72;18;2
+2026-04-25;2026-04-26;Tampere DG League K1;L-tier;Tampere;Ahlmanin kenttä;Tampere Disc Golf ry;Teppo Korhonen;45678;teppo@tadg.fi;liiga@tadg.fi;https://tadg.fi;48;18;1
+2026-05-02;2026-05-03;Mikkeli Open;C-tier;Mikkeli;Kaukola;Mikkelin Frisbeegolfseura;Hannu Tarkkanen;33333;hannu@mfgs.fi;info@mfgs.fi;https://mfgs.fi;72;18;2
+2026-05-02;2026-05-03;Finnish Open Qualifier Turku;B-tier;Turku;Töllinmäki;Turun Frisbeegolfseura;Jari Leinonen;34567;jari@tfgs.fi;fopen@tfgs.fi;https://tfgs.fi;108;18;3
+2026-05-09;2026-05-10;Seinäjoki Cup;C-tier;Seinäjoki;Kivistö;Seinäjoen Frisbeegolfseura;Juho Koskinen;44444;juho@sfgs.fi;info@sfgs.fi;https://sfgs.fi;72;18;2
+2026-05-09;2026-05-10;Espoo Disc Open;C-tier;Espoo;Saunalahti;Disc Golf Espoo;Heikki Salonen;89012;heikki@dge.fi;open@dge.fi;https://dge.fi;72;18;2
+2026-05-16;2026-05-17;Finnish Open 2026;A-tier;Tampere;Hämeenpuisto;Tampere Disc Golf ry;Pekka Mäkinen;12345;pekka@tadg.fi;fopen@tadg.fi;https://fopen.tadg.fi;216;18;4
+2026-05-23;2026-05-24;Turku Open 2026;B-tier;Turku;Töllinmäki;Turun Frisbeegolfseura;Jari Leinonen;34567;jari@tfgs.fi;turku@tfgs.fi;https://turku.tfgs.fi;144;18;3
+2026-05-30;2026-05-31;Oulu Disc Cup;C-tier;Oulu;Hietasaari;Oulun Frisbeegolfseura;Kari Nieminen;56789;kari@ofgs.fi;cup@ofgs.fi;https://ofgs.fi;72;18;2
+2026-06-06;2026-06-08;SM-kisat 2026;A-tier;Jyväskylä;Laajavuori;Jyväskylän Frisbeegolfseura;Mikko Heikkinen;67890;mikko@jfgs.fi;sm@jfgs.fi;https://sm2026.fi;216;18;4
+2026-06-06;2026-06-06;Helsinki DG League K2;L-tier;Helsinki;Lammassaari;Disc Golf Team Helsinki;Matti Virtanen;23456;matti@dgth.fi;liiga@dgth.fi;https://dgth.fi;48;18;1
+2026-06-13;2026-06-14;Lahti Disc Open;B-tier;Lahti;Ahtiala;Lahden Frisbeegolf ry;Anna Mäkinen;78901;anna@ldfg.fi;open@ldfg.fi;https://ldfg.fi;144;18;3
+2026-06-20;2026-06-21;Espoo Open;B-tier;Espoo;Pitkäjärvi;Disc Golf Espoo;Heikki Salonen;89012;heikki@dge.fi;open@dge.fi;https://espoo.dge.fi;144;18;3
+2026-06-27;2026-06-28;Rovaniemi Open (Midnight Sun);C-tier;Rovaniemi;Ounasvaara;Rovaniemen Frisbeegolfseura;Timo Saastamoinen;55555;timo@rfgs.fi;info@rfgs.fi;https://rfgs.fi;72;18;2
+2026-06-27;2026-06-28;Kuopio Cup;C-tier;Kuopio;Niuvanniemi;Kuopion Frisbeegolfklubi;Tuomo Paavola;90123;tuomo@kfgk.fi;cup@kfgk.fi;https://kfgk.fi;72;18;2
+2026-07-04;2026-07-05;Pori Disc Open;C-tier;Pori;Kirjurinluoto;Porin Frisbeegolfseura;Erkki Saarinen;11111;erkki@pfgs.fi;open@pfgs.fi;https://pfgs.fi;72;18;2
+2026-07-04;2026-07-05;Tampere DG League K2;L-tier;Tampere;Ahlmanin kenttä;Tampere Disc Golf ry;Teppo Korhonen;45678;teppo@tadg.fi;liiga@tadg.fi;https://tadg.fi;48;18;1
+2026-07-11;2026-07-12;Vaasa Open;C-tier;Vaasa;Palosaari;Vaasan Frisbeegolfseura;Pirjo Mäkinen;22222;pirjo@vfgs.fi;open@vfgs.fi;https://vfgs.fi;72;18;2
+2026-07-11;2026-07-12;Finnish Junior Championships 2026;B-tier;Helsinki;Viikki;Disc Golf Team Helsinki;Matti Virtanen;23456;matti@dgth.fi;junior@dgth.fi;https://junior.dgth.fi;108;18;3
+2026-07-18;2026-07-19;Mikkeli Summer Cup;C-tier;Mikkeli;Kaukola;Mikkelin Frisbeegolfseura;Hannu Tarkkanen;33333;hannu@mfgs.fi;summer@mfgs.fi;https://mfgs.fi;72;18;2
+2026-07-18;2026-07-19;Hämeenlinna Open;C-tier;Hämeenlinna;Ahvenisto;Hämeenlinnan Frisbeegolfseura;Kaisa Peltonen;66666;kaisa@hfgs.fi;info@hfgs.fi;https://hfgs.fi;72;18;2
+2026-07-25;2026-07-27;Pro Tour Jyväskylä;A-tier;Jyväskylä;Ainola;Jyväskylän Frisbeegolfseura;Mikko Heikkinen;67890;mikko@jfgs.fi;protour@jfgs.fi;https://protour.jfgs.fi;216;18;4
+2026-07-25;2026-07-26;Joensuu Disc Cup;C-tier;Joensuu;Rantakylä;Joensuun Frisbeegolfseura;Samuli Haataja;01234;samuli@jfgs.fi;cup@jfgjoensuu.fi;https://jfgjoensuu.fi;72;18;2
+2026-08-01;2026-08-02;Kajaani Open;C-tier;Kajaani;Otanmäki;Kajaanin Frisbeegolfseura;Pentti Väisänen;77777;pentti@kafg.fi;info@kafg.fi;https://kafg.fi;72;18;2
+2026-08-01;2026-08-01;Helsinki DG League K3;L-tier;Helsinki;Rantapuisto;Disc Golf Team Helsinki;Matti Virtanen;23456;matti@dgth.fi;liiga@dgth.fi;https://dgth.fi;48;18;1
+2026-08-08;2026-08-09;Finnish Women's Open;B-tier;Tampere;Hämeenpuisto;Tampere Disc Golf ry;Liisa Mäkinen;88888;liisa@tadg.fi;women@tadg.fi;https://women.tadg.fi;108;18;3
+2026-08-08;2026-08-09;Oulu Masters;B-tier;Oulu;Toppilansalmi;Oulun Frisbeegolfseura;Kari Nieminen;56789;kari@ofgs.fi;masters@ofgs.fi;https://masters.ofgs.fi;144;18;3
+2026-08-15;2026-08-16;Kotka Cup;C-tier;Kotka;Hovinsaari;Kotkan Frisbeegolfseura;Risto Lehtonen;99999;risto@kfgs.fi;info@kfgs.fi;https://kfgs.fi;72;18;2
+2026-08-15;2026-08-16;Seinäjoki Open;C-tier;Seinäjoki;Kivistö;Seinäjoen Frisbeegolfseura;Juho Koskinen;44444;juho@sfgs.fi;open@sfgs.fi;https://sfgs.fi;72;18;2
+2026-08-22;2026-08-24;Turku Masters;A-tier;Turku;Kupittaa;Turun Frisbeegolfseura;Jari Leinonen;34567;jari@tfgs.fi;masters@tfgs.fi;https://masters.tfgs.fi;216;18;4
+2026-08-22;2026-08-23;Kouvola Cup;C-tier;Kouvola;Kasarminmäki;Kouvolan Frisbeegolfseura;Aino Hämäläinen;12340;aino@kovfg.fi;info@kovfg.fi;https://kovfg.fi;72;18;2
+2026-08-29;2026-08-30;Helsinki City Open;B-tier;Helsinki;Rantapuisto;Disc Golf Team Helsinki;Matti Virtanen;23456;matti@dgth.fi;city@dgth.fi;https://city.dgth.fi;144;18;3
+2026-08-29;2026-08-29;Tampere DG League K3;L-tier;Tampere;Hämeenpuisto;Tampere Disc Golf ry;Teppo Korhonen;45678;teppo@tadg.fi;liiga@tadg.fi;https://tadg.fi;48;18;1
+2026-09-05;2026-09-06;Kuopio Masters;B-tier;Kuopio;Väinölänniemi;Kuopion Frisbeegolfklubi;Tuomo Paavola;90123;tuomo@kfgk.fi;masters@kfgk.fi;https://masters.kfgk.fi;144;18;3
+2026-09-05;2026-09-06;Lahti Autumn Cup;C-tier;Lahti;Kariniemi;Lahden Frisbeegolf ry;Anna Mäkinen;78901;anna@ldfg.fi;autumn@ldfg.fi;https://ldfg.fi;72;18;2
+2026-09-12;2026-09-13;Espoo DG Masters;B-tier;Espoo;Saunalahti;Disc Golf Espoo;Heikki Salonen;89012;heikki@dge.fi;masters@dge.fi;https://masters.dge.fi;144;18;3
+2026-09-12;2026-09-12;Helsinki DG League K4;L-tier;Helsinki;Central Park;Disc Golf Team Helsinki;Matti Virtanen;23456;matti@dgth.fi;liiga@dgth.fi;https://dgth.fi;48;18;1
+2026-09-19;2026-09-20;Finnish Club Championship 2026;A-tier;Jyväskylä;Laajavuori;Jyväskylän Frisbeegolfseura;Mikko Heikkinen;67890;mikko@jfgs.fi;club@jfgs.fi;https://club.jfgs.fi;216;18;4
+2026-09-19;2026-09-19;Tampere DG League Finaali;L-tier;Tampere;Iidesjärvi;Tampere Disc Golf ry;Teppo Korhonen;45678;teppo@tadg.fi;liiga@tadg.fi;https://tadg.fi;72;18;2
+2026-09-26;2026-09-27;Oulu Autumn Cup;C-tier;Oulu;Hietasaari;Oulun Frisbeegolfseura;Kari Nieminen;56789;kari@ofgs.fi;autumn@ofgs.fi;https://ofgs.fi;72;18;2
+2026-10-03;2026-10-04;Helsinki DG League Finaali;L-tier;Helsinki;Viikki;Disc Golf Team Helsinki;Matti Virtanen;23456;matti@dgth.fi;liiga@dgth.fi;https://dgth.fi;72;18;2
+2026-10-03;2026-10-04;Turku Autumn Disc;C-tier;Turku;Kupittaa;Turun Frisbeegolfseura;Jari Leinonen;34567;jari@tfgs.fi;autumn@tfgs.fi;https://tfgs.fi;72;18;2
+2026-10-10;2026-10-11;Tampere Autumn Open;C-tier;Tampere;Hämeenpuisto;Tampere Disc Golf ry;Pekka Mäkinen;12345;pekka@tadg.fi;autumn@tadg.fi;https://tadg.fi;72;18;2
+2026-10-17;2026-10-18;Espoo Autumn Masters;C-tier;Espoo;Pitkäjärvi;Disc Golf Espoo;Heikki Salonen;89012;heikki@dge.fi;autumn@dge.fi;https://dge.fi;72;18;2
+2026-10-24;2026-10-25;Helsinki Autumn Disc;C-tier;Helsinki;Rantapuisto;Disc Golf Team Helsinki;Matti Virtanen;23456;matti@dgth.fi;syksy@dgth.fi;https://dgth.fi;72;18;2
+`; /* CSV may contain trailing semicolon-only rows – they are safely filtered out by parseCompetitionsCSV */
+
+/* ===================================================
+   CSV PARSER + STATUS ASSIGNMENT
+   =================================================== */
+const COMPARE_DATE = new Date('2026-05-14');
+
+function parseCompetitionsCSV(csv) {
+  // Split into lines, trim whitespace, and filter out blank lines and
+  // lines consisting only of semicolons (empty trailing rows in source CSV).
+  const lines = csv.split('\n').map(l => l.trim()).filter(l => l && !/^[;]+$/.test(l));
+  const headers = lines[0].split(';').map(h => h.trim());
+  const result = [];
+  const COLS = {
+    startDate: 0, endDate: 1, name: 2, tier: 3, city: 4, course: 5,
+    organizer: 6, tdName: 7, tdPdga: 8, tdEmail: 9,
+    email: 10, website: 11, maxPlayers: 12, holes: 13, rounds: 14
+  };
+
+  for (let i = 1; i < lines.length; i++) {
+    const parts = lines[i].split(';');
+    if (!parts[COLS.name] || !parts[COLS.startDate]) continue;
+    const id = i; // row index (1-based), used for deterministic status assignment
+    const startDate = parts[COLS.startDate].trim();
+    const eventDate = parseISODate(startDate);
+    const isPast = eventDate <= COMPARE_DATE;
+    let status;
+    if (isPast) {
+      status = 'published'; // past/held competitions are treated as published
+    } else {
+      // Deterministic future split: 10 % draft, 10 % submitted, 10 % approved, 70 % published
+      const r = id % 10;
+      if (r === 0) status = 'draft';
+      else if (r === 1) status = 'submitted';
+      else if (r === 2) status = 'approved';
+      else status = 'published';
+    }
+    result.push({
+      id,
+      name: parts[COLS.name].trim(),
+      city: parts[COLS.city].trim(),
+      date: startDate,
+      endDate: parts[COLS.endDate]?.trim() || '',
+      tier: parts[COLS.tier]?.trim() || '',
+      course: parts[COLS.course]?.trim() || '',
+      organizer: parts[COLS.organizer]?.trim() || '',
+      tdName: parts[COLS.tdName]?.trim() || '',
+      tdPdga: parts[COLS.tdPdga]?.trim() || '',
+      tdEmail: parts[COLS.tdEmail]?.trim() || '',
+      email: parts[COLS.email]?.trim() || '',
+      website: parts[COLS.website]?.trim() || '',
+      maxPlayers: parts[COLS.maxPlayers]?.trim() || '',
+      holes: parts[COLS.holes]?.trim() || '',
+      rounds: parts[COLS.rounds]?.trim() || '',
+      status,
+      participants: 0,
+      // Legacy aliases used in shared renderAppList/renderAppDetail helpers
+      sport: parts[COLS.tier]?.trim() || '',
+      contact: parts[COLS.email]?.trim() || '',
+    });
+  }
+  return result;
+}
+
+const APPLICATIONS = parseCompetitionsCSV(COMPETITIONS_CSV_RAW);
+
+/* ===================================================
+   TIER COLOURS
+   =================================================== */
+const TIER_COLORS = {
+  'A-tier': '#7c3aed',
+  'B-tier': '#1d4ed8',
+  'C-tier': '#0891b2',
+  'L-tier': '#16a34a',
+};
+const DEFAULT_TIER_COLOR = '#64748b'; // slate grey for unknown/other tiers
+
+function tierColor(tier) {
+  return TIER_COLORS[tier] || DEFAULT_TIER_COLOR;
+}
+
+function tierBadgeHTML(tier) {
+  const color = tierColor(tier);
+  return `<span class="tier-badge" style="background:${color}22;color:${color};border:1px solid ${color}44">${tier || '—'}</span>`;
+}
+
 
 /* City positions on the placeholder map (% from top-left)
    Approximate Finnish geography: Oulu=north, Helsinki/Espoo=south */
 const CITY_POSITIONS = {
-  'Helsinki': { left: 62, top: 82 },
-  'Espoo':    { left: 56, top: 84 },
-  'Tampere':  { left: 52, top: 64 },
-  'Turku':    { left: 42, top: 76 },
-  'Oulu':     { left: 55, top: 22 },
-  'Jyväskylä':{ left: 58, top: 50 },
-  'Lahti':    { left: 64, top: 73 },
+  'Helsinki':     { left: 62, top: 82 },
+  'Espoo':        { left: 56, top: 84 },
+  'Tampere':      { left: 52, top: 64 },
+  'Turku':        { left: 42, top: 76 },
+  'Oulu':         { left: 55, top: 22 },
+  'Jyväskylä':    { left: 58, top: 50 },
+  'Lahti':        { left: 64, top: 73 },
+  'Kuopio':       { left: 69, top: 40 },
+  'Joensuu':      { left: 75, top: 36 },
+  'Pori':         { left: 40, top: 62 },
+  'Vaasa':        { left: 38, top: 42 },
+  'Mikkeli':      { left: 68, top: 56 },
+  'Seinäjoki':    { left: 45, top: 52 },
+  'Hämeenlinna':  { left: 59, top: 70 },
+  'Kotka':        { left: 72, top: 79 },
+  'Kouvola':      { left: 70, top: 74 },
+  'Rovaniemi':    { left: 62, top: 12 },
+  'Kajaani':      { left: 68, top: 26 },
+  'Central Park': { left: 62, top: 82 },
 };
 
 /* ===================================================
@@ -4418,7 +1764,8 @@ function getFilteredPublicApps() {
   const now = new Date();
   now.setHours(0, 0, 0, 0);
 
-  return publicApps()
+  const baseApps = isWorkRole(currentRole) ? APPLICATIONS : publicApps();
+  return baseApps
     .filter(a => {
       const date = parseISODate(a.date);
       if (monthFilterMode === 'future') return date >= now;
@@ -4468,7 +1815,8 @@ function filterApps(query) {
   filteredApps = visibleApps().filter(a =>
     a.name.toLowerCase().includes(q) ||
     a.city.toLowerCase().includes(q) ||
-    a.sport.toLowerCase().includes(q)
+    (a.tier || '').toLowerCase().includes(q) ||
+    (a.course || '').toLowerCase().includes(q)
   );
   renderAppList();
 }
@@ -4488,7 +1836,7 @@ function renderAppList() {
       <div class="app-item-meta">
         <span>📍 ${a.city}</span>
         <span>📅 ${formatDate(a.date)}</span>
-        <span>🏅 ${a.sport}</span>
+        <span>${tierBadgeHTML(a.tier)}</span>
       </div>
     </div>
   `).join('');
@@ -4519,7 +1867,7 @@ function renderAppDetail(app) {
     <div class="detail-header">
       <div>
         <div class="detail-title">${app.name}</div>
-        <div class="detail-sub">Järjestäjä: ${app.organizer} &nbsp;|&nbsp; Yhteyshenkilö: ${app.contact}</div>
+        <div class="detail-sub">Järjestäjä: ${app.organizer}${app.tdName ? ' &nbsp;|&nbsp; TD: ' + app.tdName : ''}</div>
       </div>
       ${badgeHTML(app.status)}
     </div>
@@ -4531,12 +1879,12 @@ function renderAppDetail(app) {
       <div class="info-grid">
         <div class="info-item"><label>Paikkakunta</label><p>📍 ${app.city}</p></div>
         <div class="info-item"><label>Päivämäärä</label><p>📅 ${formatDate(app.date)}</p></div>
-        <div class="info-item"><label>Laji</label><p>🏅 ${app.sport}</p></div>
-        <div class="info-item"><label>Ilmoittautuneita</label><p>👤 ${app.status === 'published' && app.participants > 0 ? app.participants : '—'}</p></div>
+        <div class="info-item"><label>Taso</label><p>${tierBadgeHTML(app.tier)}</p></div>
+        <div class="info-item"><label>Rata</label><p>⛳ ${app.course || '—'}</p></div>
       </div>
       <div class="info-item" style="margin-bottom:20px">
-        <label>Kuvaus</label>
-        <p style="margin-top:6px;line-height:1.6;color:#374151">${app.description}</p>
+        ${app.email ? `<div style="display:flex;gap:6px;align-items:center;font-size:13px;margin-bottom:6px">✉️ <a href="mailto:${app.email}" style="color:#2563eb">${app.email}</a></div>` : ''}
+        ${app.website ? `<div style="display:flex;gap:6px;align-items:center;font-size:13px">🌐 <a href="${app.website}" target="_blank" rel="noopener" style="color:#2563eb">${app.website}</a></div>` : ''}
       </div>
       ${isWorkRole(currentRole) ? `
         <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -4560,20 +1908,20 @@ function renderCalendar() {
     return;
   }
   grid.innerHTML = apps.map(a => `
-    <div class="cal-card" onclick="showToast('Kilpailun tiedot: ${a.name}')">
-      <div class="cal-card-banner" style="background:${STATUS_COLORS[a.status]}"></div>
+    <div class="cal-card" onclick="showCompetitionDetails(${a.id})">
+      <div class="cal-card-banner" style="background:${tierColor(a.tier)}"></div>
       <div class="cal-card-body">
         <div class="cal-card-date">${formatDateLong(a.date)}</div>
         <div class="cal-card-title">${a.name}</div>
         <div class="cal-card-meta">
+          ${tierBadgeHTML(a.tier)}
           <span>📍 ${a.city}</span>
-          <span>🏅 ${a.sport}</span>
-          <span>👤 ${a.participants} ilmoittautunutta</span>
+          <span>⛳ ${a.course}</span>
         </div>
       </div>
       <div class="cal-card-footer">
         ${badgeHTML(a.status)}
-        <button class="btn btn-ghost" style="padding:4px 10px;font-size:12px" onclick="event.stopPropagation();showToast('Lisätiedot tulossa!')">Lisätiedot →</button>
+        <button class="btn btn-ghost" style="padding:4px 10px;font-size:12px" onclick="event.stopPropagation();showCompetitionDetails(${a.id})">Lisätiedot →</button>
       </div>
     </div>
   `).join('');
@@ -4590,11 +1938,14 @@ function renderList() {
     return;
   }
   tbody.innerHTML = apps.map(a => `
-    <tr onclick="showToast('Avaa: ${a.name}')" style="cursor:pointer">
-      <td class="name">${a.name}</td>
-      <td>📍 ${a.city}</td>
+    <tr onclick="showCompetitionDetails(${a.id})" style="cursor:pointer">
+      <td class="name">
+        <div>${a.name}</div>
+        <div style="font-size:11px;color:var(--clr-muted);margin-top:2px">⛳ ${a.course}</div>
+      </td>
       <td>📅 ${formatDate(a.date)}</td>
-      <td>${a.sport}</td>
+      <td>📍 ${a.city}</td>
+      <td>${tierBadgeHTML(a.tier)}</td>
       <td>${badgeHTML(a.status)}</td>
     </tr>
   `).join('');
@@ -4620,11 +1971,12 @@ function renderMap() {
     return;
   }
 
-  // Group by city
+  // Group by city (use city name for lookup in CITY_POSITIONS)
   const byCity = {};
   apps.forEach(a => {
-    if (!byCity[a.city]) byCity[a.city] = [];
-    byCity[a.city].push(a);
+    const key = a.city;
+    if (!byCity[key]) byCity[key] = [];
+    byCity[key].push(a);
   });
 
   Object.entries(byCity).forEach(([city, cityApps]) => {
@@ -4652,9 +2004,9 @@ function showCityPopup(city, leftPct, topPct) {
   }
   document.getElementById('popupCity').textContent = '📍 ' + city;
   document.getElementById('popupContent').innerHTML = apps.map(a => `
-    <div class="map-popup-item">
+    <div class="map-popup-item" onclick="showCompetitionDetails(${a.id})" style="cursor:pointer">
       <div class="pname">${a.name}</div>
-      <div class="pdate">📅 ${formatDate(a.date)} &nbsp; ${badgeHTML(a.status)}</div>
+      <div class="pdate">📅 ${formatDate(a.date)} &nbsp; ${tierBadgeHTML(a.tier)} &nbsp; ${badgeHTML(a.status)}</div>
     </div>
   `).join('');
 
@@ -4741,6 +2093,84 @@ function submitApplicationMockup() {
 }
 
 /* ===================================================
+   KILPAILUN LISÄTIEDOT MODAL
+   =================================================== */
+function showCompetitionDetails(id) {
+  const app = APPLICATIONS.find(a => a.id === id);
+  if (!app) return;
+  document.getElementById('compDetailTitle').textContent = app.name;
+  const body = document.getElementById('compDetailBody');
+  const dateRange = app.endDate && app.endDate !== app.date
+    ? `${formatDateLong(app.date)} – ${formatDateLong(app.endDate)}`
+    : formatDateLong(app.date);
+  body.innerHTML = `
+    <div class="comp-detail-grid">
+      <div class="comp-detail-header">
+        <h2>${app.name}</h2>
+        ${tierBadgeHTML(app.tier)}
+        ${badgeHTML(app.status)}
+      </div>
+      <div class="comp-detail-row">
+        <span class="comp-detail-icon">📅</span>
+        <div><strong>Ajankohta</strong>${dateRange}</div>
+      </div>
+      <div class="comp-detail-row">
+        <span class="comp-detail-icon">📍</span>
+        <div><strong>Paikkakunta</strong>${app.city}</div>
+      </div>
+      <div class="comp-detail-row">
+        <span class="comp-detail-icon">⛳</span>
+        <div><strong>Rata</strong>${app.course || '—'}</div>
+      </div>
+      <div class="comp-detail-row">
+        <span class="comp-detail-icon">🏢</span>
+        <div><strong>Järjestäjä</strong>${app.organizer || '—'}</div>
+      </div>
+      ${app.tdName ? `
+      <div class="comp-detail-row">
+        <span class="comp-detail-icon">👤</span>
+        <div><strong>Kilpailunjohtaja (TD)</strong>${app.tdName}${app.tdPdga ? ' · PDGA ' + app.tdPdga : ''}</div>
+      </div>` : ''}
+      ${app.email ? `
+      <div class="comp-detail-row">
+        <span class="comp-detail-icon">✉️</span>
+        <div><strong>Sähköposti</strong><a href="mailto:${app.email}">${app.email}</a></div>
+      </div>` : ''}
+      ${app.website ? `
+      <div class="comp-detail-row">
+        <span class="comp-detail-icon">🌐</span>
+        <div><strong>Verkkosivut</strong><a href="${app.website}" target="_blank" rel="noopener">${app.website}</a></div>
+      </div>` : ''}
+      ${app.maxPlayers ? `
+      <div class="comp-detail-row">
+        <span class="comp-detail-icon">👥</span>
+        <div><strong>Pelaajamäärä (max)</strong>${app.maxPlayers}</div>
+      </div>` : ''}
+      ${app.holes ? `
+      <div class="comp-detail-row">
+        <span class="comp-detail-icon">🔢</span>
+        <div><strong>Väylät / kierros</strong>${app.holes}${app.rounds ? ' · ' + app.rounds + ' kierrosta' : ''}</div>
+      </div>` : ''}
+    </div>
+  `;
+  const modal = document.getElementById('competitionDetailsModal');
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeCompetitionDetailsModal() {
+  const modal = document.getElementById('competitionDetailsModal');
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+}
+
+function dismissCompetitionDetailsModal(event) {
+  if (event.target.id === 'competitionDetailsModal') closeCompetitionDetailsModal();
+}
+
+/* ===================================================
    SIDEBAR TOGGLE (mobile)
    =================================================== */
 function toggleSidebar() {
@@ -4753,7 +2183,10 @@ function closeSidebar() {
 }
 
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') closeNewApplicationModal();
+  if (e.key === 'Escape') {
+    closeNewApplicationModal();
+    closeCompetitionDetailsModal();
+  }
 });
 
 /* ===================================================
