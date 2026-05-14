@@ -664,6 +664,9 @@
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 12px;
     }
+    .form-grid--single-column {
+      grid-template-columns: 1fr;
+    }
     .field {
       display: grid;
       gap: 6px;
@@ -1298,7 +1301,7 @@
               <label class="choice"><input type="radio" name="hasPlayerPack" /> Ei pelaajapakettia</label>
             </div>
           </div>
-          <div class="form-grid">
+          <div class="form-grid form-grid--single-column">
             <div class="field"><label for="entryFees">Osallistumismaksut (€)</label><input id="entryFees" type="text" placeholder="esim. Pro 60 €, Am 45 €" /></div>
             <div class="field"><label for="playerPackValue">Pelaajapaketin sisältö ja arvo</label><input id="playerPackValue" type="text" /></div>
             <div class="field"><label for="extraBenefits">Muu hyödyke ja arvo</label><input id="extraBenefits" type="text" /></div>
