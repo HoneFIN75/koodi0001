@@ -133,11 +133,19 @@
       padding: 10px 16px;
       border-radius: 6px;
       margin: 1px 8px;
+      border: 0;
+      background: transparent;
+      text-align: left;
+      font: inherit;
       cursor: pointer;
       color: var(--clr-sidebar-txt);
       font-size: 14px; font-weight: 500;
       transition: background .15s, color .15s;
       user-select: none;
+    }
+    .nav-item:focus-visible {
+      outline: 2px solid var(--clr-sidebar-act);
+      outline-offset: 1px;
     }
     .nav-item .nav-icon { font-size: 18px; min-width: 20px; text-align: center; }
     .nav-item:hover { background: rgba(255,255,255,.07); color: #fff; }
@@ -374,6 +382,8 @@
 
     /* ── LISTA VIEW ────────────────────────────────────── */
     .list-table { width: 100%; border-collapse: collapse; }
+    .table-wrap { padding: 0; overflow-x: auto; }
+    .table-wrap .list-table { min-width: 640px; }
     .list-table th {
       text-align: left; padding: 10px 14px;
       font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
@@ -532,6 +542,18 @@
       color: #334155;
       margin-top: 8px;
       line-height: 1.55;
+      max-width: 760px;
+    }
+    .modal-demo-note {
+      margin-top: 10px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: #fff7ed;
+      color: #9a3412;
+      border: 1px solid #fdba74;
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.4;
       max-width: 760px;
     }
     .modal-close {
@@ -745,8 +767,6 @@
       .topbar-view-title { display: none; }
       .role-label { display: none; }
       .info-grid { grid-template-columns: 1fr 1fr; }
-      .list-table th:nth-child(n+4),
-      .list-table td:nth-child(n+4) { display: none; }
       .app-item { padding: 10px 12px; }
       .role-badge { display: none; }
       #roleSelect { max-width: 110px; font-size: 12px; }
@@ -791,23 +811,23 @@
 </header>
 
 <!-- ── Sidebar ───────────────────────────────────────── -->
-<nav id="sidebar">
+<nav id="sidebar" aria-label="Päänavigaatio">
   <div class="sidebar-section-label">Navigaatio</div>
-  <div class="nav-item" id="nav-etusivu" onclick="navigate('etusivu')">
-    <span class="nav-icon">🏠</span> Etusivu
-  </div>
-  <div class="nav-item" id="nav-hakemukset" onclick="navigate('hakemukset')">
-    <span class="nav-icon">📋</span> Hakemukset
-  </div>
-  <div class="nav-item" id="nav-kalenteri" onclick="navigate('kalenteri')">
-    <span class="nav-icon">📅</span> Kalenteri
-  </div>
-  <div class="nav-item" id="nav-lista" onclick="navigate('lista')">
-    <span class="nav-icon">📄</span> Lista
-  </div>
-  <div class="nav-item" id="nav-kartta" onclick="navigate('kartta')">
-    <span class="nav-icon">🗺️</span> Kartta
-  </div>
+  <button type="button" class="nav-item" id="nav-etusivu" onclick="navigate('etusivu')">
+    <span class="nav-icon" aria-hidden="true">🏠</span> Etusivu
+  </button>
+  <button type="button" class="nav-item" id="nav-hakemukset" onclick="navigate('hakemukset')">
+    <span class="nav-icon" aria-hidden="true">📋</span> Hakemukset
+  </button>
+  <button type="button" class="nav-item" id="nav-kalenteri" onclick="navigate('kalenteri')">
+    <span class="nav-icon" aria-hidden="true">📅</span> Kalenteri
+  </button>
+  <button type="button" class="nav-item" id="nav-lista" onclick="navigate('lista')">
+    <span class="nav-icon" aria-hidden="true">📄</span> Lista
+  </button>
+  <button type="button" class="nav-item" id="nav-kartta" onclick="navigate('kartta')">
+    <span class="nav-icon" aria-hidden="true">🗺️</span> Kartta
+  </button>
 
   <div class="sidebar-footer">
     Prototyyppi v1<br>
@@ -832,7 +852,7 @@
         KilpailuKalenteri on selainkäyttöinen käyttöliittymäprototyyppi kilpailujen hakemusten hallintaan ja
         julkiseen näkyvyyteen. 
         Sovellus demonstroi roolipohjaista näkymää, hakemusten tiloja sekä eri tapoja tarkastella julkisia kilpailuja ilman backend-riippuvuuksia.
-        Tominnallisuuksia tulee palasissa.
+        Toiminnallisuuksia lisätään vaiheittain.
       </p>
     </div>
     <div class="card">
@@ -864,7 +884,7 @@
       <div class="card app-list-card" id="appListPanel">
         <div class="app-list-header">Hakemuslista</div>
         <div class="app-list-search">
-          <input type="text" placeholder="🔍  Hae hakemusta…" oninput="filterApps(this.value)" />
+          <input type="text" aria-label="Hae hakemusta" placeholder="🔍  Hae hakemusta…" oninput="filterApps(this.value)" />
         </div>
         <div id="appList"></div>
       </div>
@@ -911,7 +931,7 @@
         <button class="btn btn-ghost" onclick="setCurrentMonthFilter()" aria-label="Palauta nykyinen kuukausi">Nykyinen kuukausi</button>
       </div>
     </div>
-    <div class="card" style="padding:0;overflow:hidden">
+    <div class="card table-wrap">
       <table class="list-table">
         <thead>
           <tr>
@@ -919,7 +939,7 @@
             <th>Paikkakunta</th>
             <th>Päivämäärä</th>
             <th>Laji</th>
-            <th>Status</th>
+            <th>Tila</th>
           </tr>
         </thead>
         <tbody id="listTableBody"></tbody>
@@ -967,6 +987,7 @@
           Täytä kaikki kohdat huolellisesti. Avaa tai sulje osio klikkaamalla sen otsikkoa.
           Lähettämällä hakemuksen sitoudut liiton sääntöihin ja PDGA:n kilpailumääräyksiin.
         </p>
+        <p class="modal-demo-note">Huom: Tämä hakemuslomake on mockup/demo, eikä täytettyjä tietoja tallenneta pysyvästi.</p>
       </div>
       <button class="modal-close" type="button" aria-label="Sulje hakemuslomake" onclick="closeNewApplicationModal()">✕</button>
     </div>
