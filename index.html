@@ -4,6 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Kilpailukalenteri – Prototyyppi</title>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
   <style>
     /* ── Reset & Variables ───────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -407,66 +413,27 @@
     .list-table td.name { font-weight: 600; }
 
     /* ── KARTTA VIEW ───────────────────────────────────── */
-    .map-placeholder {
-      background: linear-gradient(160deg, #dbeafe 0%, #bfdbfe 30%, #e0f2fe 60%, #ccfbf1 100%);
+    .map-shell {
       border-radius: var(--radius);
       min-height: 560px;
       position: relative;
       overflow: hidden;
       border: 1px solid #93c5fd;
     }
-    .map-bg-text {
-      position: absolute; bottom: 12px; right: 16px;
-      text-align: right; color: #7db0c0; pointer-events: none;
+    #leafletMap {
+      height: 560px;
+      width: 100%;
     }
-    .map-bg-text .map-icon { font-size: 28px; display: block; margin-bottom: 2px; }
-    .map-bg-text p { font-size: 11px; }
-
-    /* City markers */
-    .city-marker {
-      position: absolute;
-      transform: translate(-50%, -50%);
-      z-index: 2;
+    .leaflet-popup-content h4 {
+      font-size: 14px;
+      margin: 0 0 8px;
     }
-    .city-dot {
-      width: 38px; height: 38px; border-radius: 50%;
-      background: var(--clr-sidebar-act);
-      border: 3px solid #fff;
-      box-shadow: 0 2px 8px rgba(59,130,246,.5);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 13px; font-weight: 700; color: #fff;
-      cursor: pointer;
-      transition: transform .15s, box-shadow .15s;
-      position: relative; z-index: 2;
-    }
-    .city-dot:hover { transform: scale(1.15); box-shadow: 0 4px 14px rgba(59,130,246,.6); }
-    .city-label {
-      position: absolute; bottom: -22px; left: 50%;
-      transform: translateX(-50%);
-      white-space: nowrap; font-size: 11px; font-weight: 600;
-      color: #1e3a5f; background: rgba(255,255,255,.85);
-      padding: 1px 5px; border-radius: 3px;
+    .leaflet-popup-content .map-city-popup-count {
+      color: var(--clr-muted);
+      font-size: 12px;
+      margin-bottom: 8px;
     }
 
-    /* Popup */
-    .map-popup {
-      display: none;
-      position: absolute;
-      background: #fff;
-      border-radius: var(--radius);
-      box-shadow: 0 8px 24px rgba(0,0,0,.18);
-      padding: 14px 16px;
-      min-width: 220px;
-      z-index: 10;
-      font-size: 13px;
-    }
-    .map-popup.visible { display: block; }
-    .map-popup h4 { font-size: 14px; font-weight: 700; margin-bottom: 8px; padding-right: 20px; }
-    .map-popup-close {
-      position: absolute; top: 10px; right: 10px;
-      background: none; border: none; cursor: pointer;
-      font-size: 16px; color: var(--clr-muted);
-    }
     .map-popup-item { padding: 6px 0; border-bottom: 1px solid var(--clr-border); }
     .map-popup-item:last-child { border-bottom: none; }
     .map-popup-item .pname { font-weight: 600; }
@@ -1059,17 +1026,9 @@
         <button class="btn btn-ghost" onclick="setCurrentMonthFilter()" aria-label="Palauta nykyinen kuukausi">Nykyinen kuukausi</button>
       </div>
     </div>
-    <div class="map-placeholder" id="mapArea">
-      <div class="map-bg-text">
-        <span class="map-icon">🗺️</span>
-        <p>Karttapohja (placeholder)<br>Oikea karttaintegraatio tulossa</p>
-      </div>
-      <!-- City markers injected by JS -->
-      <div id="mapPopup" class="map-popup">
-        <button class="map-popup-close" onclick="closePopup()">✕</button>
-        <h4 id="popupCity"></h4>
-        <div id="popupContent"></div>
-      </div>
+    <div class="map-shell" id="mapArea">
+      <div id="leafletMap" aria-label="Suomen kilpailukartta"></div>
+      <div id="mapEmptyNote" class="map-empty-note" style="display:none"></div>
     </div>
   </div>
 
@@ -1484,6 +1443,11 @@
 
 <div id="toast"></div>
 
+<script
+  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+  crossorigin=""
+></script>
 <script>
 /* ===================================================
    MOCK DATA
@@ -1663,29 +1627,32 @@ function tierBadgeHTML(tier) {
 }
 
 
-/* City positions on the placeholder map (% from top-left)
-   Approximate Finnish geography: Oulu=north, Helsinki/Espoo=south */
-const CITY_POSITIONS = {
-  'Helsinki':     { left: 62, top: 82 },
-  'Espoo':        { left: 56, top: 84 },
-  'Tampere':      { left: 52, top: 64 },
-  'Turku':        { left: 42, top: 76 },
-  'Oulu':         { left: 55, top: 22 },
-  'Jyväskylä':    { left: 58, top: 50 },
-  'Lahti':        { left: 64, top: 73 },
-  'Kuopio':       { left: 69, top: 40 },
-  'Joensuu':      { left: 75, top: 36 },
-  'Pori':         { left: 40, top: 62 },
-  'Vaasa':        { left: 38, top: 42 },
-  'Mikkeli':      { left: 68, top: 56 },
-  'Seinäjoki':    { left: 45, top: 52 },
-  'Hämeenlinna':  { left: 59, top: 70 },
-  'Kotka':        { left: 72, top: 79 },
-  'Kouvola':      { left: 70, top: 74 },
-  'Rovaniemi':    { left: 62, top: 12 },
-  'Kajaani':      { left: 68, top: 26 },
-  'Central Park': { left: 62, top: 82 },
+/* City coordinates used by Kartta (lat, lng) */
+const CITY_COORDS = {
+  'Espoo':       [60.2055, 24.6559],
+  'Helsinki':    [60.1699, 24.9384],
+  'Hämeenlinna': [60.9959, 24.4643],
+  'Joensuu':     [62.6010, 29.7636],
+  'Jyväskylä':   [62.2426, 25.7473],
+  'Kajaani':     [64.2273, 27.7285],
+  'Kotka':       [60.4664, 26.9458],
+  'Kouvola':     [60.8679, 26.7042],
+  'Kuopio':      [62.8924, 27.6782],
+  'Lahti':       [60.9827, 25.6615],
+  'Mikkeli':     [61.6886, 27.2723],
+  'Oulu':        [65.0121, 25.4651],
+  'Pori':        [61.4850, 21.7970],
+  'Rovaniemi':   [66.5039, 25.7294],
+  'Seinäjoki':   [62.7903, 22.8403],
+  'Tampere':     [61.4978, 23.7610],
+  'Turku':       [60.4518, 22.2666],
+  'Vaasa':       [63.0951, 21.6165],
 };
+
+const FINLAND_MAP_CENTER = [64.5, 26.0];
+const FINLAND_MAP_ZOOM = 5;
+let competitionMap = null;
+let cityMarkerLayer = null;
 
 /* ===================================================
    STATE
@@ -1981,74 +1948,125 @@ function renderList() {
    KARTTA VIEW
    =================================================== */
 function renderMap() {
-  const mapArea = document.getElementById('mapArea');
-  // Remove old markers
-  mapArea.querySelectorAll('.city-marker').forEach(el => el.remove());
-  // Suljetaan aiempi popup, jotta suodatus- tai kuukausivaihdossa ei jää vanhaa sisältöä näkyviin.
-  closePopup();
-
-  const apps = getFilteredPublicApps();
-  mapArea.querySelectorAll('.map-empty-note').forEach(el => el.remove());
-  if (!apps.length) {
-    const empty = document.createElement('div');
-    empty.className = 'map-empty-note';
-    empty.textContent = 'Ei kilpailuja valitulla suodatuksella.';
-    mapArea.appendChild(empty);
+  const emptyNote = document.getElementById('mapEmptyNote');
+  if (typeof L === 'undefined') {
+    emptyNote.textContent = 'Karttapalvelua ei voitu ladata.';
+    emptyNote.style.display = 'block';
     return;
   }
 
-  // Group by city (use city name for lookup in CITY_POSITIONS)
-  const byCity = {};
-  apps.forEach(a => {
-    const key = a.city;
-    if (!byCity[key]) byCity[key] = [];
-    byCity[key].push(a);
+  initCompetitionMap();
+  if (!competitionMap || !cityMarkerLayer) return;
+
+  cityMarkerLayer.clearLayers();
+  competitionMap.closePopup();
+  const apps = getFilteredPublicApps();
+  if (!apps.length) {
+    emptyNote.textContent = 'Ei kilpailuja valitulla suodatuksella.';
+    emptyNote.style.display = 'block';
+    return;
+  }
+  emptyNote.style.display = 'none';
+
+  const appsByCity = groupAppsByCity(apps);
+  const markerLatLngs = [];
+  const missingCoords = [];
+
+  Object.entries(appsByCity).forEach(([city, cityApps]) => {
+    const coords = getCityCoordinates(city);
+    if (!coords) {
+      missingCoords.push(city);
+      return;
+    }
+    markerLatLngs.push(coords);
+
+    const marker = L.circleMarker(coords, {
+      radius: Math.min(20, 8 + cityApps.length * 1.5),
+      color: '#1d4ed8',
+      weight: 2,
+      fillColor: '#3b82f6',
+      fillOpacity: 0.75,
+    });
+    marker.bindTooltip(`${city} (${cityApps.length})`);
+    marker.bindPopup(buildCityPopupHTML(city, cityApps), { maxWidth: 340 });
+    marker.addTo(cityMarkerLayer);
   });
 
-  Object.entries(byCity).forEach(([city, cityApps]) => {
-    const pos = CITY_POSITIONS[city];
-    if (!pos) return;
-    const marker = document.createElement('div');
-    marker.className = 'city-marker';
-    marker.style.left = pos.left + '%';
-    marker.style.top  = pos.top  + '%';
-    marker.innerHTML = `
-      <div class="city-dot" onclick="showCityPopup('${city}', ${pos.left}, ${pos.top})" title="${city}: ${cityApps.length} kilpailu(a)">
-        ${cityApps.length}
-      </div>
-      <div class="city-label">${city}</div>
-    `;
-    mapArea.appendChild(marker);
-  });
+  if (missingCoords.length) {
+    console.warn('CITY_COORDS puuttuu paikkakunnilta:', missingCoords);
+  }
+
+  if (!markerLatLngs.length) {
+    emptyNote.textContent = 'Paikkakunnille ei löytynyt koordinaatteja.';
+    emptyNote.style.display = 'block';
+    competitionMap.setView(FINLAND_MAP_CENTER, FINLAND_MAP_ZOOM);
+    return;
+  }
+
+  if (markerLatLngs.length === 1) {
+    competitionMap.setView(markerLatLngs[0], 7);
+  } else {
+    competitionMap.fitBounds(L.latLngBounds(markerLatLngs), { padding: [36, 36], maxZoom: 7 });
+  }
+  requestAnimationFrame(() => competitionMap.invalidateSize());
 }
 
-function showCityPopup(city, leftPct, topPct) {
-  const apps = getFilteredPublicApps().filter(a => a.city === city);
-  if (!apps.length) {
-    closePopup();
-    return;
-  }
-  document.getElementById('popupCity').textContent = '📍 ' + city;
-  document.getElementById('popupContent').innerHTML = apps.map(a => `
+function initCompetitionMap() {
+  if (competitionMap || typeof L === 'undefined') return;
+  competitionMap = L.map('leafletMap', {
+    center: FINLAND_MAP_CENTER,
+    zoom: FINLAND_MAP_ZOOM,
+    minZoom: 4,
+    maxZoom: 12,
+    zoomControl: true,
+  });
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap contributors',
+  }).addTo(competitionMap);
+  cityMarkerLayer = L.layerGroup().addTo(competitionMap);
+}
+
+function groupAppsByCity(apps) {
+  return apps.reduce((acc, app) => {
+    if (!acc[app.city]) acc[app.city] = [];
+    acc[app.city].push(app);
+    return acc;
+  }, {});
+}
+
+function getCityCoordinates(city) {
+  return CITY_COORDS[city] || null;
+}
+
+function buildCityPopupHTML(city, apps) {
+  const countLabel = `${apps.length} kilpailu${apps.length === 1 ? '' : 'a'}`;
+  const items = apps.map(a => `
     <div class="map-popup-item" onclick="showCompetitionDetails(${a.id})" style="cursor:pointer">
       <div class="pname">${a.name}</div>
       <div class="pdate">📅 ${formatDate(a.date)} &nbsp; ${tierBadgeHTML(a.tier)} &nbsp; ${badgeHTML(a.status)}</div>
     </div>
   `).join('');
-
-  const popup = document.getElementById('mapPopup');
-  popup.classList.add('visible');
-  // Position popup near marker but inside map
-  let left = leftPct + 4;
-  let top  = topPct - 20;
-  if (left > 60) left = leftPct - 28;
-  if (top < 5)   top  = topPct + 5;
-  popup.style.left = left + '%';
-  popup.style.top  = top  + '%';
+  return `
+    <h4>📍 ${city}</h4>
+    <div class="map-city-popup-count">${countLabel}</div>
+    ${items}
+  `;
 }
 
-function closePopup() {
-  document.getElementById('mapPopup').classList.remove('visible');
+function getMockDataCitiesWithoutCoordinates() {
+  const missing = new Set();
+  APPLICATIONS.forEach(app => {
+    if (!CITY_COORDS[app.city]) missing.add(app.city);
+  });
+  return [...missing].sort((a, b) => a.localeCompare(b, 'fi'));
+}
+
+function logMissingCityCoordinates() {
+  const missing = getMockDataCitiesWithoutCoordinates();
+  if (missing.length) {
+    console.warn('CITY_COORDS puuttuu paikkakunnilta:', missing);
+  }
 }
 
 /* ===================================================
@@ -2217,6 +2235,7 @@ document.addEventListener('keydown', e => {
   syncWcOtherFieldState();
   filteredApps = [...APPLICATIONS];
   updateMonthFilterLabels();
+  logMissingCityCoordinates();
   renderAppList();
   applyRole('admin');   // sets default view + renders sidebar
 })();

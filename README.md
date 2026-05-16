@@ -43,6 +43,12 @@ koodi0001/
 └── index.html    ← koko prototyyppi yhdessä tiedostossa (HTML + CSS + JS)
 ```
 
+## 🗺️ Kartta
+
+- Kartta-näkymä käyttää Leaflet-kirjastoa (CDN) ja OpenStreetMap-taustakarttaa.
+- Kartalle piirretään suodatetusta mock-datasta yksi piste per paikkakunta.
+- Markerin popup näyttää paikkakunnan kilpailumäärän sekä kilpailut, joista pääsee lisätietoihin.
+
 ---
 
 ## 👥 Roolit
@@ -76,7 +82,6 @@ Roolia vaihdetaan yläpalkin pudotusvalikosta – käyttäjähallintaa ei ole.
 
 - Tietokantaintegraatio (MySQL)
 - Käyttäjähallinta ja autentikointi
-- Oikea karttapalvelu (Leaflet / Google Maps)
 - Hakemuksen täysi lomake ja editointi
 - Workflow-toiminnot (tilanmuutokset, kommentointi, hyväksynnät)
 - Hakemusten massatuonti tiedostosta
