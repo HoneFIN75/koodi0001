@@ -24,6 +24,11 @@
       --clr-border:      #e2e8f0;
       --clr-text:        #1a202c;
       --clr-muted:       #718096;
+      --clr-muted-bg:    #f8fafc;
+      --clr-accent-soft: #dbeafe;
+      --clr-accent-soft-border: #93c5fd;
+      --clr-accent-soft-hover: #bfdbfe;
+      --clr-soft-surface: #fbfdff;
 
       /* Status colours */
       --s-draft:       #9ca3af; /* grey   */
@@ -260,22 +265,20 @@
     .badge-rejected::before { background: var(--s-rejected); }
 
     /* ── HAKEMUKSET VIEW ───────────────────────────────── */
-    #view-hakemukset .two-col {
-      display: grid;
-      grid-template-columns: 340px 1fr;
-      gap: 16px;
-      align-items: start;
+    .hakemukset-toolbar-card {
+      padding: 0;
+      overflow: hidden;
+      margin-bottom: 16px;
     }
-
-    .app-list-card { padding: 0; overflow: hidden; }
     .app-list-header {
       padding: 16px 20px;
       border-bottom: 1px solid var(--clr-border);
       font-size: 15px; font-weight: 700;
     }
-    .app-list-search {
+    .hakemukset-toolbar {
       padding: 12px 16px;
-      border-bottom: 1px solid var(--clr-border);
+      display: grid;
+      gap: 12px;
     }
     .app-list-search input {
       width: 100%; padding: 7px 10px;
@@ -285,17 +288,82 @@
     }
     .app-list-search input:focus { border-color: var(--clr-sidebar-act); }
 
-    .app-item {
-      padding: 12px 20px;
+    .hakemus-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .filter-btn.active {
+      background: var(--clr-accent-soft);
+      color: #1d4ed8;
+      border-color: var(--clr-accent-soft-border);
+    }
+
+    .kanban-board {
+      display: grid;
+      grid-template-columns: repeat(var(--kanban-columns, 1), minmax(230px, 1fr));
+      gap: 12px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+    .kanban-column {
+      min-width: 0;
+      border: 1px solid var(--clr-border);
+      border-radius: 10px;
+      background: var(--clr-surface);
+      display: flex;
+      flex-direction: column;
+      min-height: 220px;
+    }
+    .kanban-column-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 10px 12px;
       border-bottom: 1px solid var(--clr-border);
+      background: var(--clr-muted-bg);
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .kanban-column-count {
+      font-size: 11px;
+      color: var(--clr-muted);
+      font-weight: 700;
+    }
+    .kanban-column-body {
+      display: grid;
+      gap: 8px;
+      padding: 10px;
+      align-content: start;
+    }
+    .kanban-empty {
+      font-size: 12px;
+      color: var(--clr-muted);
+      text-align: center;
+      padding: 10px 8px;
+      border: 1px dashed var(--clr-border);
+      border-radius: 8px;
+      background: var(--clr-soft-surface);
+    }
+    .kanban-item {
+      border: 1px solid var(--clr-border);
+      border-radius: 8px;
+      padding: 10px;
       cursor: pointer;
-      transition: background .12s;
+      transition: background .12s, border-color .12s, box-shadow .12s;
+      background: #fff;
       overflow: hidden;
     }
-    .app-item:last-child { border-bottom: none; }
-    .app-item:hover { background: #f8fafc; }
-    .app-item.selected { background: #eff6ff; border-left: 3px solid var(--clr-sidebar-act); }
-
+    .kanban-item:hover {
+      background: var(--clr-muted-bg);
+      border-color: var(--clr-accent-soft-hover);
+    }
+    .kanban-item.selected {
+      border-color: var(--clr-sidebar-act);
+      box-shadow: 0 0 0 2px #dbeafe;
+      background: #eff6ff;
+    }
     .app-item-top {
       display: flex; align-items: flex-start; justify-content: space-between;
       gap: 8px; margin-bottom: 4px; flex-wrap: wrap;
@@ -303,6 +371,16 @@
     .app-item-name { font-size: 14px; font-weight: 600; min-width: 0; flex: 1; }
     .app-item-meta { font-size: 12px; color: var(--clr-muted); display: flex; gap: 8px; flex-wrap: wrap; }
     .app-item-meta span { display: flex; align-items: center; gap: 3px; }
+    .kanban-no-results {
+      grid-column: 1 / -1;
+      border: 1px dashed var(--clr-border);
+      border-radius: 10px;
+      background: var(--clr-soft-surface);
+      color: var(--clr-muted);
+      font-size: 14px;
+      text-align: center;
+      padding: 28px 14px;
+    }
 
     /* Detail panel */
     .detail-card { padding: 0; overflow: hidden; }
@@ -758,9 +836,7 @@
       #overlay.open { display: block; }
       #hamburger { display: flex; }
       #main { margin-left: 0; padding: 16px; overflow-x: hidden; }
-      #view-hakemukset .two-col {
-        grid-template-columns: 1fr;
-      }
+      .kanban-board { grid-template-columns: repeat(var(--kanban-columns, 1), minmax(210px, 1fr)); }
     }
 
     @media (max-width: 600px) {
@@ -768,13 +844,14 @@
       .topbar-view-title { display: none; }
       .role-label { display: none; }
       .info-grid { grid-template-columns: 1fr 1fr; }
-      .app-item { padding: 10px 12px; }
       .role-badge { display: none; }
       #roleSelect { max-width: 110px; font-size: 12px; }
       .app-logo span { font-size: 14px; }
-      .two-col > * { min-width: 0; }
       .section-header { align-items: flex-start; }
       .month-label { min-width: 120px; }
+      .hakemukset-toolbar { padding: 10px 12px; }
+      .kanban-column-head { padding: 9px 10px; }
+      .kanban-column-body { padding: 8px; }
       .modal-backdrop { padding: 10px; }
       .modal-sheet { max-height: calc(100dvh - 20px); }
       .modal-head { padding: 16px; }
@@ -941,23 +1018,22 @@
   <div class="view" id="view-hakemukset">
     <div class="section-header">
       <h1 class="section-title">Hakemukset</h1>
-      <button class="btn btn-primary" onclick="openNewApplicationPage()">+ Uusi hakemus</button>
+      <button class="btn btn-primary" id="newApplicationBtn" aria-label="Luo uusi hakemus">+ Uusi hakemus</button>
     </div>
-    <div class="two-col">
-      <!-- Left: application list -->
-      <div class="card app-list-card" id="appListPanel">
-        <div class="app-list-header">Hakemuslista</div>
+    <div class="card hakemukset-toolbar-card">
+      <div class="app-list-header">Hakemukset elinkaaren mukaan</div>
+      <div class="hakemukset-toolbar">
         <div class="app-list-search">
-          <input type="text" aria-label="Hae hakemusta" placeholder="🔍  Hae hakemusta…" oninput="filterApps(this.value)" />
+          <input type="text" id="appSearchInput" aria-label="Hae hakemusta" placeholder="Hae hakemusta…" />
         </div>
-        <div id="appList"></div>
+        <div id="appTierFilters" class="hakemus-filters"></div>
       </div>
-      <!-- Right: detail panel -->
-      <div class="card detail-card" id="appDetail">
-        <div class="detail-empty">
-          <span class="empty-icon">📋</span>
-          <p>Valitse hakemus</p>
-        </div>
+    </div>
+    <div id="appList" class="kanban-board"></div>
+    <div class="card detail-card" id="appDetail" style="margin-top:16px">
+      <div class="detail-empty">
+        <span class="empty-icon">📋</span>
+        <p>Valitse hakemus</p>
       </div>
     </div>
   </div>
@@ -1672,6 +1748,8 @@ let currentRole    = 'admin';
 let currentView    = 'etusivu';
 let selectedAppId  = null;
 let filteredApps   = [...APPLICATIONS];
+let appSearchQuery = '';
+let selectedTierFilter = 'all';
 let monthFilterMode = 'month';
 let selectedMonth = startOfMonth(new Date());
 
@@ -1680,6 +1758,7 @@ let selectedMonth = startOfMonth(new Date());
    =================================================== */
 const WORK_ROLES   = ['admin', 'liitto', 'kilpailunjohtaja'];
 const PUBLIC_ROLES = ['kilpailija', 'yleiso'];
+const UI_LOCALE = 'fi';
 
 function isWorkRole(role) { return WORK_ROLES.includes(role); }
 
@@ -1815,35 +1894,104 @@ function visibleApps() {
 }
 
 function filterApps(query) {
-  const q = query.toLowerCase();
-  filteredApps = visibleApps().filter(a =>
-    a.name.toLowerCase().includes(q) ||
-    a.city.toLowerCase().includes(q) ||
-    (a.tier || '').toLowerCase().includes(q) ||
-    (a.course || '').toLowerCase().includes(q)
-  );
+  appSearchQuery = (query || '').toLowerCase();
   renderAppList();
 }
 
+function setTierFilter(tier) {
+  selectedTierFilter = tier;
+  renderTierFilters();
+  renderAppList();
+}
+
+function getTierFilterOptions() {
+  return [...new Set(visibleApps().map(a => a.tier).filter(Boolean))]
+    .sort((a, b) => a.localeCompare(b, UI_LOCALE, { sensitivity: 'base' }));
+}
+
+function renderTierFilters() {
+  const filtersEl = document.getElementById('appTierFilters');
+  if (!filtersEl) return;
+  const tiers = getTierFilterOptions();
+  if (selectedTierFilter !== 'all' && !tiers.includes(selectedTierFilter)) {
+    selectedTierFilter = 'all';
+  }
+  filtersEl.innerHTML = [
+    `<button type="button" class="btn btn-ghost filter-btn ${selectedTierFilter === 'all' ? 'active' : ''}" data-tier="all">Kaikki tasot</button>`,
+    ...tiers.map(tier =>
+      `<button type="button" class="btn btn-ghost filter-btn ${selectedTierFilter === tier ? 'active' : ''}" data-tier="${escapeHTML(tier)}">${escapeHTML(tier)}</button>`
+    )
+  ].join('');
+}
+
+function getFilteredHakemusApps() {
+  return visibleApps()
+    .filter(a => selectedTierFilter === 'all' || a.tier === selectedTierFilter)
+    .filter(a =>
+      !appSearchQuery ||
+      a.name.toLowerCase().includes(appSearchQuery) ||
+      a.city.toLowerCase().includes(appSearchQuery) ||
+      (a.tier || '').toLowerCase().includes(appSearchQuery) ||
+      (a.course || '').toLowerCase().includes(appSearchQuery)
+    )
+    .map(a => ({ app: a, sortTime: Date.parse(a.date) }))
+    .sort((a, b) => a.sortTime - b.sortTime)
+    .map(item => item.app);
+}
+
+function renderKanbanColumn(stage, stageApps) {
+  return `
+    <section class="kanban-column" aria-label="${escapeHTML(stage.label)}">
+      <div class="kanban-column-head">
+        <span>${escapeHTML(stage.label)}</span>
+        <span class="kanban-column-count">${stageApps.length} kpl</span>
+      </div>
+      <div class="kanban-column-body">
+        ${stageApps.length ? stageApps.map(a => {
+          const appId = Number(a.id);
+          if (!Number.isFinite(appId)) return '';
+          return `
+          <article class="kanban-item js-app-card ${appId === selectedAppId ? 'selected' : ''}" data-app-id="${appId}">
+            <div class="app-item-top">
+              <span class="app-item-name">${escapeHTML(a.name)}</span>
+              ${badgeHTML(a.status)}
+            </div>
+            <div class="app-item-meta">
+              <span>📍 ${escapeHTML(a.city)}</span>
+              <span>📅 ${formatDate(a.date)}</span>
+              <span>${tierBadgeHTML(a.tier)}</span>
+            </div>
+          </article>
+        `;
+        }).join('') : '<div class="kanban-empty">Ei hakemuksia</div>'}
+      </div>
+    </section>
+  `;
+}
+
 function renderAppList() {
+  renderTierFilters();
+  filteredApps = getFilteredHakemusApps();
   const container = document.getElementById('appList');
   if (!filteredApps.length) {
-    container.innerHTML = '<div style="padding:20px;color:var(--clr-muted);font-size:14px;text-align:center">Ei hakemuksia</div>';
+    container.innerHTML = '<div class="kanban-no-results">Ei hakemuksia valitulla suodatuksella.</div>';
     return;
   }
-  container.innerHTML = filteredApps.map(a => `
-    <div class="app-item ${a.id === selectedAppId ? 'selected' : ''}" onclick="selectApp(${a.id})">
-      <div class="app-item-top">
-        <span class="app-item-name">${a.name}</span>
-        ${badgeHTML(a.status)}
-      </div>
-      <div class="app-item-meta">
-        <span>📍 ${a.city}</span>
-        <span>📅 ${formatDate(a.date)}</span>
-        <span>${tierBadgeHTML(a.tier)}</span>
-      </div>
-    </div>
-  `).join('');
+  const stages = [
+    { key: 'draft', label: 'Luonnos' },
+    { key: 'submitted', label: 'Lähetetty' },
+    { key: 'review', label: 'Käsittelyssä' },
+    { key: 'approved', label: 'Hyväksytty' },
+    { key: 'published', label: 'Julkaistu' },
+    { key: 'rejected', label: 'Hylätty' },
+  ];
+  const groupedByStatus = filteredApps.reduce((acc, app) => {
+    if (!acc[app.status]) acc[app.status] = [];
+    acc[app.status].push(app);
+    return acc;
+  }, {});
+  container.style.setProperty('--kanban-columns', String(stages.length));
+  container.innerHTML = stages.map(stage => renderKanbanColumn(stage, groupedByStatus[stage.key] || [])).join('');
 }
 
 function selectApp(id) {
@@ -2106,6 +2254,15 @@ function showToast(msg) {
   t._timer = setTimeout(() => t.classList.remove('show'), 2600);
 }
 
+function escapeHTML(value) {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
 function syncWcOtherFieldState() {
   const wcOtherInput = document.getElementById('wcOther');
   if (!wcOtherInput) return;
@@ -2243,6 +2400,31 @@ document.addEventListener('keydown', e => {
   document.querySelectorAll('input[name="wcInfo"]').forEach((radio) => {
     radio.addEventListener('change', syncWcOtherFieldState);
   });
+  const newApplicationBtn = document.getElementById('newApplicationBtn');
+  if (newApplicationBtn) {
+    newApplicationBtn.addEventListener('click', openNewApplicationPage);
+  }
+  const appSearchInput = document.getElementById('appSearchInput');
+  if (appSearchInput) {
+    appSearchInput.addEventListener('input', (event) => filterApps(event.target.value));
+  }
+  const appTierFilters = document.getElementById('appTierFilters');
+  if (appTierFilters) {
+    appTierFilters.addEventListener('click', (event) => {
+      const button = event.target.closest('button[data-tier]');
+      if (!button) return;
+      setTierFilter(button.dataset.tier);
+    });
+  }
+  const appList = document.getElementById('appList');
+  if (appList) {
+    appList.addEventListener('click', (event) => {
+      const card = event.target.closest('.js-app-card');
+      if (!card) return;
+      const appId = Number(card.dataset.appId);
+      if (Number.isFinite(appId)) selectApp(appId);
+    });
+  }
   syncWcOtherFieldState();
   filteredApps = [...APPLICATIONS];
   updateMonthFilterLabels();
