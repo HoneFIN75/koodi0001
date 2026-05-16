@@ -1018,13 +1018,13 @@
   <div class="view" id="view-hakemukset">
     <div class="section-header">
       <h1 class="section-title">Hakemukset</h1>
-      <button class="btn btn-primary" onclick="openNewApplicationPage()">+ Uusi hakemus</button>
+      <button class="btn btn-primary" id="newApplicationBtn">+ Uusi hakemus</button>
     </div>
     <div class="card hakemukset-toolbar-card">
       <div class="app-list-header">Hakemukset elinkaaren mukaan</div>
       <div class="hakemukset-toolbar">
         <div class="app-list-search">
-          <input type="text" aria-label="Hae hakemusta" placeholder="🔍  Hae hakemusta…" oninput="filterApps(this.value)" />
+          <input type="text" id="appSearchInput" aria-label="Hae hakemusta" placeholder="🔍  Hae hakemusta…" />
         </div>
         <div id="appTierFilters" class="hakemus-filters"></div>
       </div>
@@ -2404,6 +2404,14 @@ document.addEventListener('keydown', e => {
   document.querySelectorAll('input[name="wcInfo"]').forEach((radio) => {
     radio.addEventListener('change', syncWcOtherFieldState);
   });
+  const newApplicationBtn = document.getElementById('newApplicationBtn');
+  if (newApplicationBtn) {
+    newApplicationBtn.addEventListener('click', openNewApplicationPage);
+  }
+  const appSearchInput = document.getElementById('appSearchInput');
+  if (appSearchInput) {
+    appSearchInput.addEventListener('input', (event) => filterApps(event.target.value));
+  }
   syncWcOtherFieldState();
   filteredApps = [...APPLICATIONS];
   updateMonthFilterLabels();
