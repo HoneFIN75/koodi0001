@@ -1916,11 +1916,14 @@ function renderTierFilters() {
     selectedTierFilter = 'all';
   }
   filtersEl.innerHTML = [
-    `<button type="button" class="btn btn-ghost filter-btn ${selectedTierFilter === 'all' ? 'active' : ''}" onclick="setTierFilter('all')">Kaikki tasot</button>`,
+    `<button type="button" class="btn btn-ghost filter-btn ${selectedTierFilter === 'all' ? 'active' : ''}" data-tier="all">Kaikki tasot</button>`,
     ...tiers.map(tier =>
-      `<button type="button" class="btn btn-ghost filter-btn ${selectedTierFilter === tier ? 'active' : ''}" data-tier="${escapeHTML(tier)}" onclick="setTierFilter(this.dataset.tier)">${escapeHTML(tier)}</button>`
+      `<button type="button" class="btn btn-ghost filter-btn ${selectedTierFilter === tier ? 'active' : ''}" data-tier="${escapeHTML(tier)}">${escapeHTML(tier)}</button>`
     )
   ].join('');
+  filtersEl.querySelectorAll('button[data-tier]').forEach(button => {
+    button.addEventListener('click', () => setTierFilter(button.dataset.tier));
+  });
 }
 
 function getFilteredHakemusApps() {
@@ -1933,7 +1936,9 @@ function getFilteredHakemusApps() {
       (a.tier || '').toLowerCase().includes(appSearchQuery) ||
       (a.course || '').toLowerCase().includes(appSearchQuery)
     )
-    .sort((a, b) => Date.parse(a.date) - Date.parse(b.date));
+    .map(a => ({ app: a, sortTime: Date.parse(a.date) }))
+    .sort((a, b) => a.sortTime - b.sortTime)
+    .map(item => item.app);
 }
 
 function renderKanbanColumn(stage, stageApps) {
@@ -1945,7 +1950,7 @@ function renderKanbanColumn(stage, stageApps) {
       </div>
       <div class="kanban-column-body">
         ${stageApps.length ? stageApps.map(a => `
-          <article class="kanban-item ${a.id === selectedAppId ? 'selected' : ''}" onclick="selectApp(${a.id})">
+          <article class="kanban-item js-app-card ${a.id === selectedAppId ? 'selected' : ''}" data-app-id="${Number(a.id)}">
             <div class="app-item-top">
               <span class="app-item-name">${escapeHTML(a.name)}</span>
               ${badgeHTML(a.status)}
@@ -1985,6 +1990,12 @@ function renderAppList() {
   }, {});
   container.style.setProperty('--kanban-columns', String(stages.length));
   container.innerHTML = stages.map(stage => renderKanbanColumn(stage, groupedByStatus[stage.key] || [])).join('');
+  container.querySelectorAll('.js-app-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const appId = Number(card.dataset.appId);
+      if (Number.isFinite(appId)) selectApp(appId);
+    });
+  });
 }
 
 function selectApp(id) {
