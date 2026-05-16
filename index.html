@@ -1981,7 +1981,7 @@ function renderMap() {
 
   const appsByCity = groupAppsByCity(apps);
   const markerLatLngs = [];
-  const missingCoords = getMockDataCitiesWithoutCoordinates(apps);
+  const missingCoords = warnMissingCityCoordinates(apps);
 
   Object.entries(appsByCity).forEach(([city, cityApps]) => {
     const coords = getCityCoordinates(city);
@@ -1989,7 +1989,7 @@ function renderMap() {
     markerLatLngs.push(coords);
 
     const marker = L.circleMarker(coords, {
-      radius: Math.min(MAP_MARKER_STYLE.maxRadius, MAP_MARKER_STYLE.minRadius + cityApps.length * MAP_MARKER_STYLE.growthFactor),
+      radius: calculateMarkerRadius(cityApps.length),
       color: MAP_MARKER_STYLE.strokeColor,
       weight: MAP_MARKER_STYLE.strokeWeight,
       fillColor: MAP_MARKER_STYLE.fillColor,
@@ -1999,10 +1999,6 @@ function renderMap() {
     marker.bindPopup(buildCityPopupHTML(city, cityApps), { maxWidth: 340 });
     marker.addTo(cityMarkerLayer);
   });
-
-  if (missingCoords.length) {
-    console.warn('CITY_COORDS puuttuu paikkakunnilta:', missingCoords);
-  }
 
   if (!markerLatLngs.length) {
     emptyNote.textContent = 'Paikkakunnille ei löytynyt koordinaatteja.';
@@ -2047,6 +2043,13 @@ function getCityCoordinates(city) {
   return CITY_COORDS[city] || null;
 }
 
+function calculateMarkerRadius(cityCompetitionCount) {
+  return Math.min(
+    MAP_MARKER_STYLE.maxRadius,
+    MAP_MARKER_STYLE.minRadius + cityCompetitionCount * MAP_MARKER_STYLE.growthFactor
+  );
+}
+
 function buildCityPopupHTML(city, apps) {
   const countLabel = `${apps.length} kilpailu${apps.length === 1 ? '' : 'a'}`;
   const items = apps.map(a => `
@@ -2062,7 +2065,7 @@ function buildCityPopupHTML(city, apps) {
   `;
 }
 
-function getMockDataCitiesWithoutCoordinates(apps = APPLICATIONS) {
+function getCitiesWithoutCoordinates(apps = APPLICATIONS) {
   const missing = new Set();
   apps.forEach(app => {
     if (!CITY_COORDS[app.city]) missing.add(app.city);
@@ -2070,11 +2073,12 @@ function getMockDataCitiesWithoutCoordinates(apps = APPLICATIONS) {
   return [...missing].sort((a, b) => a.localeCompare(b, 'fi'));
 }
 
-function logMissingCityCoordinates() {
-  const missing = getMockDataCitiesWithoutCoordinates();
+function warnMissingCityCoordinates(apps = APPLICATIONS) {
+  const missing = getCitiesWithoutCoordinates(apps);
   if (missing.length) {
     console.warn('CITY_COORDS puuttuu paikkakunnilta:', missing);
   }
+  return missing;
 }
 
 /* ===================================================
@@ -2243,7 +2247,7 @@ document.addEventListener('keydown', e => {
   syncWcOtherFieldState();
   filteredApps = [...APPLICATIONS];
   updateMonthFilterLabels();
-  logMissingCityCoordinates();
+  warnMissingCityCoordinates();
   renderAppList();
   applyRole('admin');   // sets default view + renders sidebar
 })();
