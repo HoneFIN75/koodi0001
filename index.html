@@ -8,7 +8,7 @@
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-    crossorigin=""
+    crossorigin="anonymous"
   />
   <style>
     /* ── Reset & Variables ───────────────────────────── */
@@ -1446,7 +1446,7 @@
 <script
   src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
   integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-  crossorigin=""
+  crossorigin="anonymous"
 ></script>
 <script>
 /* ===================================================
@@ -1981,7 +1981,8 @@ function renderMap() {
 
   const appsByCity = groupAppsByCity(apps);
   const markerLatLngs = [];
-  const missingCoords = warnMissingCityCoordinates(apps);
+  const missingCoords = getCitiesWithoutCoordinates(apps);
+  warnMissingCityCoordinates(missingCoords);
 
   Object.entries(appsByCity).forEach(([city, cityApps]) => {
     const coords = getCityCoordinates(city);
@@ -2073,12 +2074,10 @@ function getCitiesWithoutCoordinates(apps = APPLICATIONS) {
   return [...missing].sort((a, b) => a.localeCompare(b, 'fi'));
 }
 
-function warnMissingCityCoordinates(apps = APPLICATIONS) {
-  const missing = getCitiesWithoutCoordinates(apps);
+function warnMissingCityCoordinates(missing) {
   if (missing.length) {
     console.warn('CITY_COORDS puuttuu paikkakunnilta:', missing);
   }
-  return missing;
 }
 
 /* ===================================================
@@ -2247,7 +2246,7 @@ document.addEventListener('keydown', e => {
   syncWcOtherFieldState();
   filteredApps = [...APPLICATIONS];
   updateMonthFilterLabels();
-  warnMissingCityCoordinates();
+  warnMissingCityCoordinates(getCitiesWithoutCoordinates());
   renderAppList();
   applyRole('admin');   // sets default view + renders sidebar
 })();
