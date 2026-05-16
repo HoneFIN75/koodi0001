@@ -1018,13 +1018,13 @@
   <div class="view" id="view-hakemukset">
     <div class="section-header">
       <h1 class="section-title">Hakemukset</h1>
-      <button class="btn btn-primary" id="newApplicationBtn">+ Uusi hakemus</button>
+      <button class="btn btn-primary" id="newApplicationBtn" aria-label="Luo uusi hakemus">+ Uusi hakemus</button>
     </div>
     <div class="card hakemukset-toolbar-card">
       <div class="app-list-header">Hakemukset elinkaaren mukaan</div>
       <div class="hakemukset-toolbar">
         <div class="app-list-search">
-          <input type="text" id="appSearchInput" aria-label="Hae hakemusta" placeholder="🔍  Hae hakemusta…" />
+          <input type="text" id="appSearchInput" aria-label="Hae hakemusta" placeholder="Hae hakemusta…" />
         </div>
         <div id="appTierFilters" class="hakemus-filters"></div>
       </div>
@@ -1922,9 +1922,6 @@ function renderTierFilters() {
       `<button type="button" class="btn btn-ghost filter-btn ${selectedTierFilter === tier ? 'active' : ''}" data-tier="${escapeHTML(tier)}">${escapeHTML(tier)}</button>`
     )
   ].join('');
-  filtersEl.querySelectorAll('button[data-tier]').forEach(button => {
-    button.addEventListener('click', () => setTierFilter(button.dataset.tier));
-  });
 }
 
 function getFilteredHakemusApps() {
@@ -1995,12 +1992,6 @@ function renderAppList() {
   }, {});
   container.style.setProperty('--kanban-columns', String(stages.length));
   container.innerHTML = stages.map(stage => renderKanbanColumn(stage, groupedByStatus[stage.key] || [])).join('');
-  container.querySelectorAll('.js-app-card').forEach(card => {
-    card.addEventListener('click', () => {
-      const appId = Number(card.dataset.appId);
-      if (Number.isFinite(appId)) selectApp(appId);
-    });
-  });
 }
 
 function selectApp(id) {
@@ -2416,6 +2407,23 @@ document.addEventListener('keydown', e => {
   const appSearchInput = document.getElementById('appSearchInput');
   if (appSearchInput) {
     appSearchInput.addEventListener('input', (event) => filterApps(event.target.value));
+  }
+  const appTierFilters = document.getElementById('appTierFilters');
+  if (appTierFilters) {
+    appTierFilters.addEventListener('click', (event) => {
+      const button = event.target.closest('button[data-tier]');
+      if (!button) return;
+      setTierFilter(button.dataset.tier);
+    });
+  }
+  const appList = document.getElementById('appList');
+  if (appList) {
+    appList.addEventListener('click', (event) => {
+      const card = event.target.closest('.js-app-card');
+      if (!card) return;
+      const appId = Number(card.dataset.appId);
+      if (Number.isFinite(appId)) selectApp(appId);
+    });
   }
   syncWcOtherFieldState();
   filteredApps = [...APPLICATIONS];
