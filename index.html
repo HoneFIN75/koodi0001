@@ -1651,6 +1651,18 @@ const CITY_COORDS = {
 
 const FINLAND_MAP_CENTER = [64.5, 26.0];
 const FINLAND_MAP_ZOOM = 5;
+const FINLAND_MAP_MIN_ZOOM = 4;
+const FINLAND_MAP_MAX_ZOOM = 12;
+const TILE_LAYER_MAX_ZOOM = FINLAND_MAP_MAX_ZOOM;
+const MAP_MARKER_STYLE = {
+  minRadius: 8,
+  maxRadius: 20,
+  growthFactor: 1.5,
+  strokeColor: '#1d4ed8',
+  strokeWeight: 2,
+  fillColor: '#3b82f6',
+  fillOpacity: 0.75,
+};
 let competitionMap = null;
 let cityMarkerLayer = null;
 
@@ -1970,22 +1982,19 @@ function renderMap() {
 
   const appsByCity = groupAppsByCity(apps);
   const markerLatLngs = [];
-  const missingCoords = [];
+  const missingCoords = getMockDataCitiesWithoutCoordinates(apps);
 
   Object.entries(appsByCity).forEach(([city, cityApps]) => {
     const coords = getCityCoordinates(city);
-    if (!coords) {
-      missingCoords.push(city);
-      return;
-    }
+    if (!coords) return;
     markerLatLngs.push(coords);
 
     const marker = L.circleMarker(coords, {
-      radius: Math.min(20, 8 + cityApps.length * 1.5),
-      color: '#1d4ed8',
-      weight: 2,
-      fillColor: '#3b82f6',
-      fillOpacity: 0.75,
+      radius: Math.min(MAP_MARKER_STYLE.maxRadius, MAP_MARKER_STYLE.minRadius + cityApps.length * MAP_MARKER_STYLE.growthFactor),
+      color: MAP_MARKER_STYLE.strokeColor,
+      weight: MAP_MARKER_STYLE.strokeWeight,
+      fillColor: MAP_MARKER_STYLE.fillColor,
+      fillOpacity: MAP_MARKER_STYLE.fillOpacity,
     });
     marker.bindTooltip(`${city} (${cityApps.length})`);
     marker.bindPopup(buildCityPopupHTML(city, cityApps), { maxWidth: 340 });
@@ -2016,12 +2025,12 @@ function initCompetitionMap() {
   competitionMap = L.map('leafletMap', {
     center: FINLAND_MAP_CENTER,
     zoom: FINLAND_MAP_ZOOM,
-    minZoom: 4,
-    maxZoom: 12,
+    minZoom: FINLAND_MAP_MIN_ZOOM,
+    maxZoom: FINLAND_MAP_MAX_ZOOM,
     zoomControl: true,
   });
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
+    maxZoom: TILE_LAYER_MAX_ZOOM,
     attribution: '&copy; OpenStreetMap contributors',
   }).addTo(competitionMap);
   cityMarkerLayer = L.layerGroup().addTo(competitionMap);
@@ -2054,9 +2063,9 @@ function buildCityPopupHTML(city, apps) {
   `;
 }
 
-function getMockDataCitiesWithoutCoordinates() {
+function getMockDataCitiesWithoutCoordinates(apps = APPLICATIONS) {
   const missing = new Set();
-  APPLICATIONS.forEach(app => {
+  apps.forEach(app => {
     if (!CITY_COORDS[app.city]) missing.add(app.city);
   });
   return [...missing].sort((a, b) => a.localeCompare(b, 'fi'));
