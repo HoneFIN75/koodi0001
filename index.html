@@ -1620,7 +1620,15 @@ function parseCompetitionsCSV(csv) {
   return result;
 }
 
-const APPLICATIONS = parseCompetitionsCSV(COMPETITIONS_CSV_RAW);
+const APPLICATIONS = parseCompetitionsCSV(COMPETITIONS_CSV_RAW).map(app => ({
+  ...app,
+  tdName: 'Kalle Kilpailunjohtaja',
+  tdPdga: 'XXXXXXX',
+  tdEmail: 'info@jarjestaja.fi',
+  email: 'info@jarjestaja.fi',
+  contact: 'info@jarjestaja.fi',
+  website: 'www.kilpailu.fi',
+}));
 
 /* ===================================================
    TIER COLOURS
@@ -1880,11 +1888,11 @@ function renderAppDetail(app) {
         <div class="info-item"><label>Paikkakunta</label><p>📍 ${app.city}</p></div>
         <div class="info-item"><label>Päivämäärä</label><p>📅 ${formatDate(app.date)}</p></div>
         <div class="info-item"><label>Taso</label><p>${tierBadgeHTML(app.tier)}</p></div>
-        <div class="info-item"><label>Rata</label><p>⛳ ${app.course || '—'}</p></div>
+        <div class="info-item"><label>Rata</label><p>🥏 ${app.course || '—'}</p></div>
       </div>
       <div class="info-item" style="margin-bottom:20px">
-        ${app.email ? `<div style="display:flex;gap:6px;align-items:center;font-size:13px;margin-bottom:6px">✉️ <a href="mailto:${app.email}" style="color:#2563eb">${app.email}</a></div>` : ''}
-        ${app.website ? `<div style="display:flex;gap:6px;align-items:center;font-size:13px">🌐 <a href="${app.website}" target="_blank" rel="noopener" style="color:#2563eb">${app.website}</a></div>` : ''}
+        ${app.email ? `<div style="display:flex;gap:6px;align-items:center;font-size:13px;margin-bottom:6px">✉️ ${app.email}</div>` : ''}
+        ${app.website ? `<div style="display:flex;gap:6px;align-items:center;font-size:13px">🌐 ${app.website}</div>` : ''}
       </div>
       ${isWorkRole(currentRole) ? `
         <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -2119,7 +2127,7 @@ function showCompetitionDetails(id) {
         <div><strong>Paikkakunta</strong>${app.city}</div>
       </div>
       <div class="comp-detail-row">
-        <span class="comp-detail-icon">⛳</span>
+        <span class="comp-detail-icon">🥏</span>
         <div><strong>Rata</strong>${app.course || '—'}</div>
       </div>
       <div class="comp-detail-row">
@@ -2134,12 +2142,12 @@ function showCompetitionDetails(id) {
       ${app.email ? `
       <div class="comp-detail-row">
         <span class="comp-detail-icon">✉️</span>
-        <div><strong>Sähköposti</strong><a href="mailto:${app.email}">${app.email}</a></div>
+        <div><strong>Sähköposti</strong>${app.email}</div>
       </div>` : ''}
       ${app.website ? `
       <div class="comp-detail-row">
         <span class="comp-detail-icon">🌐</span>
-        <div><strong>Verkkosivut</strong><a href="${app.website}" target="_blank" rel="noopener">${app.website}</a></div>
+        <div><strong>Verkkosivut</strong>${app.website}</div>
       </div>` : ''}
       ${app.maxPlayers ? `
       <div class="comp-detail-row">
