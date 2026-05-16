@@ -1653,7 +1653,6 @@ const FINLAND_MAP_CENTER = [64.5, 26.0];
 const FINLAND_MAP_ZOOM = 5;
 const FINLAND_MAP_MIN_ZOOM = 4;
 const FINLAND_MAP_MAX_ZOOM = 12;
-const TILE_LAYER_MAX_ZOOM = FINLAND_MAP_MAX_ZOOM;
 const MAP_MARKER_STYLE = {
   minRadius: 8,
   maxRadius: 20,
@@ -2030,7 +2029,7 @@ function initCompetitionMap() {
     zoomControl: true,
   });
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: TILE_LAYER_MAX_ZOOM,
+    maxZoom: FINLAND_MAP_MAX_ZOOM,
     attribution: '&copy; OpenStreetMap contributors',
   }).addTo(competitionMap);
   cityMarkerLayer = L.layerGroup().addTo(competitionMap);
