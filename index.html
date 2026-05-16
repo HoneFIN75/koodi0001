@@ -1905,7 +1905,7 @@ function setTierFilter(tier) {
 
 function getTierFilterOptions() {
   return [...new Set(visibleApps().map(a => a.tier).filter(Boolean))]
-    .sort((a, b) => a.localeCompare(b, 'fi'));
+    .sort((a, b) => a.localeCompare(b, 'fi', { sensitivity: 'base' }));
 }
 
 function renderTierFilters() {
@@ -1933,26 +1933,25 @@ function getFilteredHakemusApps() {
       (a.tier || '').toLowerCase().includes(appSearchQuery) ||
       (a.course || '').toLowerCase().includes(appSearchQuery)
     )
-    .sort((a, b) => a.date.localeCompare(b.date));
+    .sort((a, b) => Date.parse(a.date) - Date.parse(b.date));
 }
 
-function renderKanbanColumn(stage) {
-  const stageApps = filteredApps.filter(a => a.status === stage.key);
+function renderKanbanColumn(stage, stageApps) {
   return `
     <section class="kanban-column" aria-label="${escapeHTML(stage.label)}">
       <div class="kanban-column-head">
-        <span>${stage.label}</span>
+        <span>${escapeHTML(stage.label)}</span>
         <span class="kanban-column-count">${stageApps.length} kpl</span>
       </div>
       <div class="kanban-column-body">
         ${stageApps.length ? stageApps.map(a => `
           <article class="kanban-item ${a.id === selectedAppId ? 'selected' : ''}" onclick="selectApp(${a.id})">
             <div class="app-item-top">
-              <span class="app-item-name">${a.name}</span>
+              <span class="app-item-name">${escapeHTML(a.name)}</span>
               ${badgeHTML(a.status)}
             </div>
             <div class="app-item-meta">
-              <span>📍 ${a.city}</span>
+              <span>📍 ${escapeHTML(a.city)}</span>
               <span>📅 ${formatDate(a.date)}</span>
               <span>${tierBadgeHTML(a.tier)}</span>
             </div>
@@ -1979,8 +1978,13 @@ function renderAppList() {
     { key: 'published', label: 'Julkaistu' },
     { key: 'rejected', label: 'Hylätty' },
   ];
+  const groupedByStatus = filteredApps.reduce((acc, app) => {
+    if (!acc[app.status]) acc[app.status] = [];
+    acc[app.status].push(app);
+    return acc;
+  }, {});
   container.style.setProperty('--kanban-columns', String(stages.length));
-  container.innerHTML = stages.map(renderKanbanColumn).join('');
+  container.innerHTML = stages.map(stage => renderKanbanColumn(stage, groupedByStatus[stage.key] || [])).join('');
 }
 
 function selectApp(id) {
