@@ -1773,9 +1773,12 @@ let selectedAppId  = null;
 let filteredApps   = [...APPLICATIONS];
 let appSearchQuery = '';
 let selectedTierFilter = 'all';
-const HAKEMUS_STAGES = ['draft', 'submitted', 'review', 'approved', 'published', 'rejected']
-  .map((key) => ({ key, label: STATUSES[key]?.label || key }));
-let selectedStatusFilters = new Set(HAKEMUS_STAGES.map((stage) => stage.key));
+const HAKEMUS_STAGE_KEYS = ['draft', 'submitted', 'review', 'approved', 'published', 'rejected'];
+const HAKEMUS_STAGES = HAKEMUS_STAGE_KEYS.map((key) => ({
+  key,
+  label: STATUSES[key] ? STATUSES[key].label : key,
+}));
+let selectedStatusFilters = new Set(HAKEMUS_STAGE_KEYS);
 let monthFilterMode = 'month';
 let selectedMonth = startOfMonth(new Date());
 
@@ -1931,14 +1934,13 @@ function setTierFilter(tier) {
 }
 
 function setStatusFilter(statusKey) {
-  const availableKeys = HAKEMUS_STAGES.map((stage) => stage.key);
   if (statusKey === 'all') {
-    selectedStatusFilters = new Set(availableKeys);
+    selectedStatusFilters = new Set(HAKEMUS_STAGE_KEYS);
     renderStatusFilters();
     renderAppList();
     return;
   }
-  if (!availableKeys.includes(statusKey)) return;
+  if (!HAKEMUS_STAGE_KEYS.includes(statusKey)) return;
   if (selectedStatusFilters.has(statusKey)) {
     selectedStatusFilters.delete(statusKey);
   } else {
