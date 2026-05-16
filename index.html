@@ -301,7 +301,7 @@
 
     .kanban-board {
       display: grid;
-      grid-template-columns: repeat(var(--kanban-columns, 6), minmax(230px, 1fr));
+      grid-template-columns: repeat(var(--kanban-columns, 1), minmax(230px, 1fr));
       gap: 12px;
       overflow-x: auto;
       padding-bottom: 8px;
@@ -836,7 +836,7 @@
       #overlay.open { display: block; }
       #hamburger { display: flex; }
       #main { margin-left: 0; padding: 16px; overflow-x: hidden; }
-      .kanban-board { grid-template-columns: repeat(var(--kanban-columns, 6), minmax(210px, 1fr)); }
+      .kanban-board { grid-template-columns: repeat(var(--kanban-columns, 1), minmax(210px, 1fr)); }
     }
 
     @media (max-width: 600px) {
@@ -1758,6 +1758,7 @@ let selectedMonth = startOfMonth(new Date());
    =================================================== */
 const WORK_ROLES   = ['admin', 'liitto', 'kilpailunjohtaja'];
 const PUBLIC_ROLES = ['kilpailija', 'yleiso'];
+const UI_LOCALE = 'fi';
 
 function isWorkRole(role) { return WORK_ROLES.includes(role); }
 
@@ -1905,7 +1906,7 @@ function setTierFilter(tier) {
 
 function getTierFilterOptions() {
   return [...new Set(visibleApps().map(a => a.tier).filter(Boolean))]
-    .sort((a, b) => a.localeCompare(b, 'fi', { sensitivity: 'base' }));
+    .sort((a, b) => a.localeCompare(b, UI_LOCALE, { sensitivity: 'base' }));
 }
 
 function renderTierFilters() {
@@ -1949,8 +1950,11 @@ function renderKanbanColumn(stage, stageApps) {
         <span class="kanban-column-count">${stageApps.length} kpl</span>
       </div>
       <div class="kanban-column-body">
-        ${stageApps.length ? stageApps.map(a => `
-          <article class="kanban-item js-app-card ${a.id === selectedAppId ? 'selected' : ''}" data-app-id="${Number(a.id)}">
+        ${stageApps.length ? stageApps.map(a => {
+          const appId = Number(a.id);
+          if (!Number.isFinite(appId)) return '';
+          return `
+          <article class="kanban-item js-app-card ${appId === selectedAppId ? 'selected' : ''}" data-app-id="${appId}">
             <div class="app-item-top">
               <span class="app-item-name">${escapeHTML(a.name)}</span>
               ${badgeHTML(a.status)}
@@ -1961,7 +1965,8 @@ function renderKanbanColumn(stage, stageApps) {
               <span>${tierBadgeHTML(a.tier)}</span>
             </div>
           </article>
-        `).join('') : '<div class="kanban-empty">Ei hakemuksia</div>'}
+        `;
+        }).join('') : '<div class="kanban-empty">Ei hakemuksia</div>'}
       </div>
     </section>
   `;
