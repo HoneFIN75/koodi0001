@@ -293,6 +293,15 @@
       flex-wrap: wrap;
       gap: 8px;
     }
+    .hakemus-filter-group {
+      display: grid;
+      gap: 8px;
+    }
+    .hakemus-filter-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--clr-muted);
+    }
     .filter-btn.active {
       background: var(--clr-accent-soft);
       color: #1d4ed8;
@@ -1026,7 +1035,14 @@
         <div class="app-list-search">
           <input type="text" id="appSearchInput" aria-label="Hae hakemusta" placeholder="Hae hakemusta…" />
         </div>
-        <div id="appTierFilters" class="hakemus-filters"></div>
+        <div class="hakemus-filter-group">
+          <div class="hakemus-filter-label">Kilpailutaso</div>
+          <div id="appTierFilters" class="hakemus-filters"></div>
+        </div>
+        <div class="hakemus-filter-group">
+          <div class="hakemus-filter-label">Elinkaaren tilat</div>
+          <div id="appStatusFilters" class="hakemus-filters"></div>
+        </div>
       </div>
     </div>
     <div id="appList" class="kanban-board"></div>
@@ -1757,6 +1773,9 @@ let selectedAppId  = null;
 let filteredApps   = [...APPLICATIONS];
 let appSearchQuery = '';
 let selectedTierFilter = 'all';
+const HAKEMUS_STAGES = ['draft', 'submitted', 'review', 'approved', 'published', 'rejected']
+  .map((key) => ({ key, label: STATUSES[key]?.label || key }));
+let selectedStatusFilters = new Set(HAKEMUS_STAGES.map((stage) => stage.key));
 let monthFilterMode = 'month';
 let selectedMonth = startOfMonth(new Date());
 
@@ -1911,6 +1930,24 @@ function setTierFilter(tier) {
   renderAppList();
 }
 
+function setStatusFilter(statusKey) {
+  const availableKeys = HAKEMUS_STAGES.map((stage) => stage.key);
+  if (statusKey === 'all') {
+    selectedStatusFilters = new Set(availableKeys);
+    renderStatusFilters();
+    renderAppList();
+    return;
+  }
+  if (!availableKeys.includes(statusKey)) return;
+  if (selectedStatusFilters.has(statusKey)) {
+    selectedStatusFilters.delete(statusKey);
+  } else {
+    selectedStatusFilters.add(statusKey);
+  }
+  renderStatusFilters();
+  renderAppList();
+}
+
 function getTierFilterOptions() {
   return [...new Set(visibleApps().map(a => a.tier).filter(Boolean))]
     .sort((a, b) => a.localeCompare(b, UI_LOCALE, { sensitivity: 'base' }));
@@ -1928,6 +1965,20 @@ function renderTierFilters() {
     ...tiers.map(tier =>
       `<button type="button" class="btn btn-ghost filter-btn ${selectedTierFilter === tier ? 'active' : ''}" data-tier="${escapeHTML(tier)}">${escapeHTML(tier)}</button>`
     )
+  ].join('');
+}
+
+function renderStatusFilters() {
+  const filtersEl = document.getElementById('appStatusFilters');
+  if (!filtersEl) return;
+  const selectedCount = HAKEMUS_STAGES.filter((stage) => selectedStatusFilters.has(stage.key)).length;
+  const allSelected = selectedCount === HAKEMUS_STAGES.length;
+  filtersEl.innerHTML = [
+    `<button type="button" class="btn btn-ghost filter-btn ${allSelected ? 'active' : ''}" data-status="all" aria-pressed="${allSelected}">Kaikki tilat</button>`,
+    ...HAKEMUS_STAGES.map((stage) => {
+      const isSelected = selectedStatusFilters.has(stage.key);
+      return `<button type="button" class="btn btn-ghost filter-btn ${isSelected ? 'active' : ''}" data-status="${escapeHTML(stage.key)}" aria-pressed="${isSelected}">${escapeHTML(stage.label)}</button>`;
+    })
   ].join('');
 }
 
@@ -1978,20 +2029,18 @@ function renderKanbanColumn(stage, stageApps) {
 
 function renderAppList() {
   renderTierFilters();
+  renderStatusFilters();
   filteredApps = getFilteredHakemusApps();
   const container = document.getElementById('appList');
   if (!filteredApps.length) {
     container.innerHTML = '<div class="kanban-no-results">Ei hakemuksia valitulla suodatuksella.</div>';
     return;
   }
-  const stages = [
-    { key: 'draft', label: 'Luonnos' },
-    { key: 'submitted', label: 'Lähetetty' },
-    { key: 'review', label: 'Käsittelyssä' },
-    { key: 'approved', label: 'Hyväksytty' },
-    { key: 'published', label: 'Julkaistu' },
-    { key: 'rejected', label: 'Hylätty' },
-  ];
+  const stages = HAKEMUS_STAGES.filter((stage) => selectedStatusFilters.has(stage.key));
+  if (!stages.length) {
+    container.innerHTML = '<div class="kanban-no-results">Valitse vähintään yksi elinkaaren tila.</div>';
+    return;
+  }
   const groupedByStatus = filteredApps.reduce((acc, app) => {
     if (!acc[app.status]) acc[app.status] = [];
     acc[app.status].push(app);
@@ -2421,6 +2470,14 @@ document.addEventListener('keydown', e => {
       const button = event.target.closest('button[data-tier]');
       if (!button) return;
       setTierFilter(button.dataset.tier);
+    });
+  }
+  const appStatusFilters = document.getElementById('appStatusFilters');
+  if (appStatusFilters) {
+    appStatusFilters.addEventListener('click', (event) => {
+      const button = event.target.closest('button[data-status]');
+      if (!button) return;
+      setStatusFilter(button.dataset.status);
     });
   }
   const appList = document.getElementById('appList');
