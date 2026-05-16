@@ -27,6 +27,8 @@
       --clr-muted-bg:    #f8fafc;
       --clr-accent-soft: #dbeafe;
       --clr-accent-soft-border: #93c5fd;
+      --clr-accent-soft-hover: #bfdbfe;
+      --clr-soft-surface: #fbfdff;
 
       /* Status colours */
       --s-draft:       #9ca3af; /* grey   */
@@ -299,7 +301,7 @@
 
     .kanban-board {
       display: grid;
-      grid-template-columns: repeat(6, minmax(230px, 1fr));
+      grid-template-columns: repeat(var(--kanban-columns, 6), minmax(230px, 1fr));
       gap: 12px;
       overflow-x: auto;
       padding-bottom: 8px;
@@ -342,7 +344,7 @@
       padding: 10px 8px;
       border: 1px dashed var(--clr-border);
       border-radius: 8px;
-      background: #fbfdff;
+      background: var(--clr-soft-surface);
     }
     .kanban-item {
       border: 1px solid var(--clr-border);
@@ -355,7 +357,7 @@
     }
     .kanban-item:hover {
       background: var(--clr-muted-bg);
-      border-color: #bfdbfe;
+      border-color: var(--clr-accent-soft-hover);
     }
     .kanban-item.selected {
       border-color: var(--clr-sidebar-act);
@@ -373,7 +375,7 @@
       grid-column: 1 / -1;
       border: 1px dashed var(--clr-border);
       border-radius: 10px;
-      background: #fbfdff;
+      background: var(--clr-soft-surface);
       color: var(--clr-muted);
       font-size: 14px;
       text-align: center;
@@ -834,7 +836,7 @@
       #overlay.open { display: block; }
       #hamburger { display: flex; }
       #main { margin-left: 0; padding: 16px; overflow-x: hidden; }
-      .kanban-board { grid-template-columns: repeat(6, minmax(210px, 1fr)); }
+      .kanban-board { grid-template-columns: repeat(var(--kanban-columns, 6), minmax(210px, 1fr)); }
     }
 
     @media (max-width: 600px) {
@@ -1916,7 +1918,7 @@ function renderTierFilters() {
   filtersEl.innerHTML = [
     `<button type="button" class="btn btn-ghost filter-btn ${selectedTierFilter === 'all' ? 'active' : ''}" onclick="setTierFilter('all')">Kaikki tasot</button>`,
     ...tiers.map(tier =>
-      `<button type="button" class="btn btn-ghost filter-btn ${selectedTierFilter === tier ? 'active' : ''}" data-tier="${encodeURIComponent(tier)}" onclick="setTierFilter(decodeURIComponent(this.dataset.tier))">${escapeHTML(tier)}</button>`
+      `<button type="button" class="btn btn-ghost filter-btn ${selectedTierFilter === tier ? 'active' : ''}" data-tier="${escapeHTML(tier)}" onclick="setTierFilter(this.dataset.tier)">${escapeHTML(tier)}</button>`
     )
   ].join('');
 }
@@ -1937,7 +1939,7 @@ function getFilteredHakemusApps() {
 function renderKanbanColumn(stage) {
   const stageApps = filteredApps.filter(a => a.status === stage.key);
   return `
-    <section class="kanban-column" aria-label="${stage.label}">
+    <section class="kanban-column" aria-label="${escapeHTML(stage.label)}">
       <div class="kanban-column-head">
         <span>${stage.label}</span>
         <span class="kanban-column-count">${stageApps.length} kpl</span>
@@ -1977,6 +1979,7 @@ function renderAppList() {
     { key: 'published', label: 'Julkaistu' },
     { key: 'rejected', label: 'Hylätty' },
   ];
+  container.style.setProperty('--kanban-columns', String(stages.length));
   container.innerHTML = stages.map(renderKanbanColumn).join('');
 }
 
