@@ -24,6 +24,9 @@
       --clr-border:      #e2e8f0;
       --clr-text:        #1a202c;
       --clr-muted:       #718096;
+      --clr-muted-bg:    #f8fafc;
+      --clr-accent-soft: #dbeafe;
+      --clr-accent-soft-border: #93c5fd;
 
       /* Status colours */
       --s-draft:       #9ca3af; /* grey   */
@@ -289,9 +292,9 @@
       gap: 8px;
     }
     .filter-btn.active {
-      background: #dbeafe;
+      background: var(--clr-accent-soft);
       color: #1d4ed8;
-      border-color: #93c5fd;
+      border-color: var(--clr-accent-soft-border);
     }
 
     .kanban-board {
@@ -317,7 +320,7 @@
       gap: 8px;
       padding: 10px 12px;
       border-bottom: 1px solid var(--clr-border);
-      background: #f8fafc;
+      background: var(--clr-muted-bg);
       font-size: 13px;
       font-weight: 700;
     }
@@ -351,7 +354,7 @@
       overflow: hidden;
     }
     .kanban-item:hover {
-      background: #f8fafc;
+      background: var(--clr-muted-bg);
       border-color: #bfdbfe;
     }
     .kanban-item.selected {
@@ -1913,7 +1916,7 @@ function renderTierFilters() {
   filtersEl.innerHTML = [
     `<button type="button" class="btn btn-ghost filter-btn ${selectedTierFilter === 'all' ? 'active' : ''}" onclick="setTierFilter('all')">Kaikki tasot</button>`,
     ...tiers.map(tier =>
-      `<button type="button" class="btn btn-ghost filter-btn ${selectedTierFilter === tier ? 'active' : ''}" onclick="setTierFilter('${tier}')">${tier}</button>`
+      `<button type="button" class="btn btn-ghost filter-btn ${selectedTierFilter === tier ? 'active' : ''}" data-tier="${encodeURIComponent(tier)}" onclick="setTierFilter(decodeURIComponent(this.dataset.tier))">${escapeHTML(tier)}</button>`
     )
   ].join('');
 }
@@ -1928,7 +1931,7 @@ function getFilteredHakemusApps() {
       (a.tier || '').toLowerCase().includes(appSearchQuery) ||
       (a.course || '').toLowerCase().includes(appSearchQuery)
     )
-    .sort((a, b) => parseISODate(a.date) - parseISODate(b.date));
+    .sort((a, b) => a.date.localeCompare(b.date));
 }
 
 function renderKanbanColumn(stage) {
@@ -2235,6 +2238,15 @@ function showToast(msg) {
   t.classList.add('show');
   clearTimeout(t._timer);
   t._timer = setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+function escapeHTML(value) {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
 }
 
 function syncWcOtherFieldState() {
