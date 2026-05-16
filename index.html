@@ -525,6 +525,16 @@
       display: flex;
       flex-direction: column;
     }
+    .application-page {
+      width: min(1120px, 100%);
+      margin: 0 auto;
+    }
+    .application-page .modal-sheet {
+      width: 100%;
+      max-height: none;
+      overflow: visible;
+    }
+    .application-page .modal-head { position: static; }
     .modal-head {
       position: sticky;
       top: 0;
@@ -949,7 +959,7 @@
         <div>
           <strong>Hakemukset</strong> – Työrooleille tarkoitettu näkymä hakemusten käsittelyyn ja tietojen tarkasteluun.
           <ul style="margin:6px 0 0 22px;color:#374151">
-            <li>Hakemukset-sivulla on painike <strong>"Uusi hakemus"</strong>, jota painamalla avautuu hakemuksen <strong>MOCKUP</strong>.</li>
+            <li>Hakemukset-sivulla on painike <strong>"Uusi hakemus"</strong>, jota painamalla avautuu hakemuksen <strong>MOCKUP</strong> omana sivunaan.</li>
             <li><strong>"Tallenna hakemus"</strong> ei oikeasti tallenna mitään, vaan toimii vain prototyypin esittelynä.</li>
           </ul>
         </div>
@@ -964,7 +974,7 @@
   <div class="view" id="view-hakemukset">
     <div class="section-header">
       <h1 class="section-title">Hakemukset</h1>
-      <button class="btn btn-primary" onclick="openNewApplicationModal()">+ Uusi hakemus</button>
+      <button class="btn btn-primary" onclick="openNewApplicationPage()">+ Uusi hakemus</button>
     </div>
     <div class="two-col">
       <!-- Left: application list -->
@@ -1063,22 +1073,21 @@
     </div>
   </div>
 
-</main>
-
-<div id="applicationModal" class="modal-backdrop" aria-hidden="true" onclick="dismissNewApplicationModal(event)">
-  <div class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="applicationModalTitle">
-    <div class="modal-head">
-      <div>
-        <h1 id="applicationModalTitle" class="modal-title">Suomen Frisbeegolfliitto ry – Kilpailuhakemuskaavake 2025–2026</h1>
-        <p class="modal-subtitle">
-          Täytä kaikki kohdat huolellisesti. Avaa tai sulje osio klikkaamalla sen otsikkoa.
-          Lähettämällä hakemuksen sitoudut liiton sääntöihin ja PDGA:n kilpailumääräyksiin.
-        </p>
-        <p class="modal-demo-note">Huom: Tämä hakemuslomake on mockup/demo, eikä täytettyjä tietoja tallenneta pysyvästi.</p>
-      </div>
-      <button class="modal-close" type="button" aria-label="Sulje hakemuslomake" onclick="closeNewApplicationModal()">✕</button>
-    </div>
-    <form class="application-form" onsubmit="event.preventDefault(); submitApplicationMockup();">
+  <div class="view" id="view-uusi-hakemus">
+    <div class="application-page">
+      <div class="modal-sheet" aria-labelledby="applicationPageTitle">
+        <div class="modal-head">
+          <div>
+            <h1 id="applicationPageTitle" class="modal-title">Suomen Frisbeegolfliitto ry – Kilpailuhakemuskaavake 2025–2026</h1>
+            <p class="modal-subtitle">
+              Täytä kaikki kohdat huolellisesti. Avaa tai sulje osio klikkaamalla sen otsikkoa.
+              Lähettämällä hakemuksen sitoudut liiton sääntöihin ja PDGA:n kilpailumääräyksiin.
+            </p>
+            <p class="modal-demo-note">Huom: Tämä hakemuslomake on mockup/demo, eikä täytettyjä tietoja tallenneta pysyvästi.</p>
+          </div>
+          <button class="btn btn-ghost" type="button" onclick="closeNewApplicationPage()">← Takaisin hakemuksiin</button>
+        </div>
+        <form class="application-form" onsubmit="event.preventDefault(); submitApplicationMockup();">
 
       <!-- OHJEISTUS – always open -->
       <details class="form-section" open>
@@ -1449,13 +1458,16 @@
       </details>
 
       <div class="form-actions">
-        <button type="button" class="btn btn-ghost" onclick="closeNewApplicationModal()">Peruuta</button>
+        <button type="button" class="btn btn-ghost" onclick="closeNewApplicationPage()">Peruuta</button>
         <button type="button" class="btn btn-ghost" onclick="saveApplicationDraft()">Tallenna luonnos</button>
         <button type="submit" class="btn btn-primary">Lähetä hakemus</button>
       </div>
-    </form>
+        </form>
+      </div>
+    </div>
   </div>
-</div>
+
+</main>
 
 <!-- KILPAILUN LISÄTIEDOT MODAL -->
 <div id="competitionDetailsModal" class="modal-backdrop" aria-hidden="true" onclick="dismissCompetitionDetailsModal(event)">
@@ -1708,9 +1720,14 @@ function applyRole(role) {
 const VIEW_TITLES = {
   etusivu:    'Etusivu',
   hakemukset: 'Hakemukset',
+  'uusi-hakemus': 'Uusi hakemus',
   kalenteri:  'Kalenteri',
   lista:      'Lista',
   kartta:     'Kartta',
+};
+
+const VIEW_NAV_ITEMS = {
+  'uusi-hakemus': 'hakemukset',
 };
 
 function navigate(viewId) {
@@ -1719,12 +1736,13 @@ function navigate(viewId) {
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
 
   const view = document.getElementById('view-' + viewId);
-  const navEl = document.getElementById('nav-' + viewId);
+  const navEl = document.getElementById('nav-' + (VIEW_NAV_ITEMS[viewId] || viewId));
   if (view) view.classList.add('active');
   if (navEl) navEl.classList.add('active');
 
   document.getElementById('topbarTitle').textContent = VIEW_TITLES[viewId] || '';
 
+  if (viewId === 'uusi-hakemus') prepareNewApplicationForm();
   if (viewId === 'kalenteri') renderCalendar();
   if (viewId === 'lista')     renderList();
   if (viewId === 'kartta')    renderMap();
@@ -2059,28 +2077,21 @@ function syncWcOtherFieldState() {
   if (!muuSelected) wcOtherInput.value = '';
 }
 
-function openNewApplicationModal() {
-  const modal = document.getElementById('applicationModal');
+function prepareNewApplicationForm() {
   const signatureDateInput = document.getElementById('signatureDate');
   const today = new Date().toISOString().split('T')[0];
   signatureDateInput.setAttribute('min', '2025-01-01');
   signatureDateInput.setAttribute('max', today);
   if (!signatureDateInput.value) signatureDateInput.value = today;
   syncWcOtherFieldState();
-  modal.classList.add('open');
-  modal.setAttribute('aria-hidden', 'false');
-  document.body.style.overflow = 'hidden';
 }
 
-function closeNewApplicationModal() {
-  const modal = document.getElementById('applicationModal');
-  modal.classList.remove('open');
-  modal.setAttribute('aria-hidden', 'true');
-  document.body.style.overflow = '';
+function openNewApplicationPage() {
+  navigate('uusi-hakemus');
 }
 
-function dismissNewApplicationModal(event) {
-  if (event.target.id === 'applicationModal') closeNewApplicationModal();
+function closeNewApplicationPage() {
+  navigate('hakemukset');
 }
 
 function saveApplicationDraft() {
@@ -2088,7 +2099,7 @@ function saveApplicationDraft() {
 }
 
 function submitApplicationMockup() {
-  closeNewApplicationModal();
+  closeNewApplicationPage();
   showToast('Hakemus lähetetty (mockup).');
 }
 
@@ -2184,7 +2195,6 @@ function closeSidebar() {
 
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
-    closeNewApplicationModal();
     closeCompetitionDetailsModal();
   }
 });
