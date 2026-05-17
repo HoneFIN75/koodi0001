@@ -1,7 +1,9 @@
 # KilpailuKalenteri – Prototyyppi v1
 
-Selainkäyttöinen käyttöliittymäprototyyppi kilpailukalenterille.  
+Selainkäyttöinen käyttöliittymäprototyyppi **Suomen Frisbeegolfliiton** kilpailukalenterille ja hakemusten hallinnalle.  
 Ei backend-riippuvuuksia, ei tietokantaa, ei autentikointia – pelkkä frontend mock-datalla.
+
+**Ulkoiset riippuvuudet (CDN):** Leaflet 1.9.4 (kartta) + OpenStreetMap-taustakartta.
 
 ---
 
@@ -43,11 +45,59 @@ koodi0001/
 └── index.html    ← koko prototyyppi yhdessä tiedostossa (HTML + CSS + JS)
 ```
 
-## 🗺️ Kartta
+---
 
-- Kartta-näkymä käyttää Leaflet-kirjastoa (CDN) ja OpenStreetMap-taustakarttaa.
-- Kartalle piirretään suodatetusta mock-datasta yksi piste per paikkakunta.
-- Markerin popup näyttää paikkakunnan kilpailumäärän sekä kilpailut, joista pääsee lisätietoihin.
+## 🧭 Navigaation osiot
+
+### Etusivu
+Yleiskatsaus prototyypistä ja lyhyt kuvaus jokaisesta osiosta.
+
+### Hakemukset *(vain työroolit)*
+Kanban-taulu, jossa hakemukset on ryhmitelty elinkaaren tilojen mukaan sarakkeisiin.
+- Haku nimellä, paikkakunnalla, tasolla tai radalla
+- Suodatus kilpailutason (A/B/C/L-tier) ja elinkaaren tilan mukaan
+- Hakemuksen valitseminen avaa yksityiskohtapaneelin elinkaariaskelmalla
+- **"+ Uusi hakemus"** -painike avaa hakemuslomake-mockunäkymän omana sivuna
+
+### Uusi hakemus *(lomakemockup)*
+Täysikokoinen hakemussivunäkymä, jossa 11 accordion-osioita:
+1. Hakemuksen ohjeistus (kustannukset, linkit, yhteystiedot)
+2. Hakijan yhteystiedot
+3. Kilpailun perustiedot
+4. Kilpailun yhteystiedot (julkaistavat)
+5. Kilpailun toimihenkilöt (TD ja apu-TD)
+6. Aikataulu
+7. Kilpailun tyyppi, taso, muoto ja luokat
+8. Pros Playing Am
+9. Paikallis- ja erikoissäännöt
+10. Kilpailun maksut ja palkinnot
+11. Faciliteetit
+
+> Huom: Lomake on mockup – tietoja ei tallenneta. "Tallenna luonnos" ja "Lähetä hakemus" näyttävät vain toast-ilmoituksen.
+
+### Kalenteri
+Hyväksytyt ja julkiset kilpailut korttinäkymänä. Korttia klikkaamalla avautuu kilpailun lisätietomodaali.
+Kuukausinavigointi: ←/→ -nuolet, "Kaikki tulevat kilpailut" ja "Nykyinen kuukausi".
+
+### Lista
+Tiivis taulukkonäkymä julkisista kilpailuista samoilla kuukausinavigointisuodattimilla.
+Riviä klikkaamalla avautuu kilpailun lisätietomodaali.
+
+### Kartta
+Kilpailut paikkakunnittain Leaflet + OpenStreetMap -kartalla.
+- Yksi ympyrämarkeri per paikkakunta; markerin koko kasvaa kilpailumäärän mukaan
+- Markeria klikkaamalla avautuu popup, jossa paikkakunnan kilpailut linkkeinä lisätietomodaaliin
+- Kuukausinavigointisuodattimet käytössä kuten Kalenterissa ja Listassa
+
+---
+
+## 🗺️ Karttakoordinaatit
+
+Tuetut paikkakunnat (koordinaatit kovakoodattu `CITY_COORDS`-objektiin):
+Espoo, Helsinki, Hämeenlinna, Joensuu, Jyväskylä, Kajaani, Kotka, Kouvola, Kuopio,
+Lahti, Mikkeli, Oulu, Pori, Rovaniemi, Seinäjoki, Tampere, Turku, Vaasa.
+
+Puuttuvat paikkakunnat tulostetaan varoituksena selaimen konsoliin.
 
 ---
 
@@ -61,20 +111,33 @@ koodi0001/
 | Kilpailija       | Etusivu     | ❌          | ✅         | ✅    | ✅      |
 | Yleisö           | Etusivu     | ❌          | ✅         | ✅    | ✅      |
 
-Roolia vaihdetaan yläpalkin pudotusvalikosta – käyttäjähallintaa ei ole.
+Roolia vaihdetaan yläpalkin pudotusvalikosta – käyttäjähallintaa ei ole.  
+Työroolit (Admin, Liitto, Kilpailunjohtaja) näkevät kaikki hakemukset tiloista riippumatta.  
+Julkiset roolit (Kilpailija, Yleisö) näkevät vain **Julkaistu**-tilaiset kilpailut.
+
+---
+
+## 🏅 Kilpailutasot ja värikoodit
+
+| Taso   | Väri           |
+|--------|---------------|
+| A-tier | Violetti       |
+| B-tier | Sininen        |
+| C-tier | Syaani         |
+| L-tier | Vihreä         |
 
 ---
 
 ## 📊 Hakemuksen statukset ja värikoodit
 
-| Status       | Väri     | Kuvaus                         |
-|-------------|----------|-------------------------------|
-| Luonnos      | Harmaa   | Kesken, ei lähetetty           |
-| Lähetetty    | Sininen  | Odottaa käsittelyä             |
-| Käsittelyssä | Keltainen | Liitto/Admin käsittelee       |
-| Hyväksytty   | Vihreä   | Vahvistettu, ei vielä julkinen |
-| Julkaistu    | Tumman vihreä | Julkinen, näkyy kaikille  |
-| Hylätty      | Punainen | Ei hyväksytty                  |
+| Status       | Väri          | Kuvaus                         |
+|-------------|---------------|-------------------------------|
+| Luonnos      | Harmaa        | Kesken, ei lähetetty           |
+| Lähetetty    | Sininen       | Odottaa käsittelyä             |
+| Käsittelyssä | Keltainen     | Liitto/Admin käsittelee       |
+| Hyväksytty   | Vihreä        | Vahvistettu, ei vielä julkinen |
+| Julkaistu    | Tumman vihreä | Julkinen, näkyy kaikille      |
+| Hylätty      | Punainen      | Ei hyväksytty                  |
 
 ---
 
@@ -82,9 +145,8 @@ Roolia vaihdetaan yläpalkin pudotusvalikosta – käyttäjähallintaa ei ole.
 
 - Tietokantaintegraatio (MySQL)
 - Käyttäjähallinta ja autentikointi
-- Hakemuksen täysi lomake ja editointi
+- Hakemuksen tietojen tallennus ja editointi
 - Workflow-toiminnot (tilanmuutokset, kommentointi, hyväksynnät)
 - Hakemusten massatuonti tiedostosta
-- Hakemuksen tietojen näkyvyyssäännöt roolikohtaisesti
-- Suodatus ja hakutoiminnot
+- Roolikohtaiset näkyvyyssäännöt hakemuksen kentille
 - Backend API -integraatio
