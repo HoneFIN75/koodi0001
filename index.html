@@ -994,7 +994,7 @@
         <h1 class="section-title">Etusivu</h1>
         <span style="font-size:13px;color:var(--clr-muted)">KilpailuKalenteri-prototyypin yhteenveto</span>
       </div>
-      <span class="update-timestamp">Update __LAST_UPDATE__</span>
+      <span class="update-timestamp">Päivitetty 17.5.2026</span>
     </div>
     <div class="card">
       <h3 style="margin:0 0 10px 0;color:var(--clr-text)">Mikä tämä prototyyppi on?</h3>
@@ -1191,7 +1191,7 @@
           <p>Kilpailunjohtajalla (TD) ja apu-TD:llä tulee olla:</p>
           <ul class="guide-list">
             <li>Voimassa oleva PDGA-jäsenyys.</li>
-            <li>Suoritettu PDGA TD -sertifiointi ().<a href="https://www.pdga.com/rules/exam" target="_blank" rel="noopener">PDGA toimitsijakoe</a>)</li>
+            <li>Suoritettu PDGA TD -sertifiointi (<a href="https://www.pdga.com/rules/exam" target="_blank" rel="noopener">PDGA toimitsijakoe</a>)</li>
           </ul>
           <h4 class="guide-h3">Hyödyllisiä linkkejä</h4>
           <ul class="guide-list">
@@ -1242,12 +1242,10 @@
             <input id="applicantPdga" class="sized-control" style="--field-width:20ch" type="text" placeholder="esim. 12345" /></div>
             <div class="field"><label for="applicantEmail">Sähköpostiosoite</label><input id="applicantEmail" class="sized-control" style="--field-width:40ch" type="email" /></div>
             <div class="field"><label for="applicantPhone">Puhelinnumero</label><input id="applicantPhone" class="sized-control" style="--field-width:40ch" type="tel" /></div>
-            <div class="field"><label for="billingInfo">Laskutusyhteystiedot</label>
-            <div class="field"><label for="applicantPhone">Katuosoite</label><input id="applicantPhone" class="sized-control" style="--field-width:40ch" type="tel" /></div>
-            <div class="field"><label for="applicantPhone">Postinumero</label><input id="applicantPhone" class="sized-control" style="--field-width:10ch" type="tel" /></div>
-            <div class="field"><label for="applicantPhone">Postitoimipaikka</label><input id="applicantPhone" class="sized-control" style="--field-width:20ch" type="tel" /></div>
-            <div class="field"><label for="billingInfo">Lisätiedot</label><textarea id="Lisätietoja" class="sized-control" style="--field-width:40ch" rows="8" placeholder="Mahdolliset lisätiedot..."></textarea></div>
-          </div>
+            <div class="field"><label for="billingStreet">Laskutus – katuosoite</label><input id="billingStreet" class="sized-control" style="--field-width:40ch" type="text" /></div>
+            <div class="field"><label for="billingZip">Laskutus – postinumero</label><input id="billingZip" class="sized-control" style="--field-width:10ch" type="text" /></div>
+            <div class="field"><label for="billingCityName">Laskutus – postitoimipaikka</label><input id="billingCityName" class="sized-control" style="--field-width:20ch" type="text" /></div>
+            <div class="field"><label for="billingNotes">Laskutus – lisätiedot</label><textarea id="billingNotes" class="sized-control" style="--field-width:40ch" rows="8" placeholder="Mahdolliset lisätiedot..."></textarea></div>
           </div>
         </div>
       </details>
@@ -1265,15 +1263,13 @@
             <div class="field"><label for="courseName">Rata</label><input id="courseName" class="sized-control" style="--field-width:40ch" type="text" /></div>
             <div class="field"><label for="basketModels">Maalikorimallit</label><input id="basketModels" class="sized-control" style="--field-width:40ch" type="text" /></div>
             <div class="field"><label for="teeMaterials">Heittoalustan materiaalit</label><input id="teeMaterials" class="sized-control" style="--field-width:40ch" type="text" /></div>
-            <div class="field"><label for="billingInfo">Radan osoite</label>
-            <div class="field"><label for="applicantPhone">Katuosoite</label><input id="applicantPhone" class="sized-control" style="--field-width:40ch" type="tel" /></div>
-            <div class="field"><label for="applicantPhone">Postinumero</label><input id="applicantPhone" class="sized-control" style="--field-width:10ch" type="tel" /></div>
-            <div class="field"><label for="applicantPhone">Postitoimipaikka</label><input id="applicantPhone" class="sized-control" style="--field-width:20ch" type="tel" /></div>
-            <div class="field"><label for="billingInfo">Lisätiedot</label><textarea id="Lisätietoja" class="sized-control" style="--field-width:40ch" rows="8" placeholder="Mahdolliset lisätiedot..."></textarea></div>
-            <br>
-            <div class="field"><label for="applicantPhone">Pelaajamäärä (max)</label><input id="applicantPhone" class="sized-control" style="--field-width:4ch" type="tel" /></div>
-            <div class="field"><label for="applicantPhone">Väylien määrä / kierros</label><input id="applicantPhone" class="sized-control" style="--field-width:4ch" type="tel" /></div>
-            <div class="field"><label for="applicantPhone">Kierrosten määrä / pelaaja</label><input id="applicantPhone" class="sized-control" style="--field-width:4ch" type="tel" /></div>
+            <div class="field"><label for="courseStreet">Rata – katuosoite</label><input id="courseStreet" class="sized-control" style="--field-width:40ch" type="text" /></div>
+            <div class="field"><label for="courseZip">Rata – postinumero</label><input id="courseZip" class="sized-control" style="--field-width:10ch" type="text" /></div>
+            <div class="field"><label for="courseCityName">Rata – postitoimipaikka</label><input id="courseCityName" class="sized-control" style="--field-width:20ch" type="text" /></div>
+            <div class="field"><label for="courseNotes">Rata – lisätiedot</label><textarea id="courseNotes" class="sized-control" style="--field-width:40ch" rows="8" placeholder="Mahdolliset lisätiedot..."></textarea></div>
+            <div class="field"><label for="maxPlayersCount">Pelaajamäärä (max)</label><input id="maxPlayersCount" class="sized-control" style="--field-width:4ch" type="number" min="1" /></div>
+            <div class="field"><label for="holesPerRound">Väylien määrä / kierros</label><input id="holesPerRound" class="sized-control" style="--field-width:4ch" type="number" min="1" /></div>
+            <div class="field"><label for="roundsPerPlayer">Kierrosten määrä / pelaaja</label><input id="roundsPerPlayer" class="sized-control" style="--field-width:4ch" type="number" min="1" /></div>
           </div>
           <div class="choice-group">
             <label class="choice"><input type="checkbox" /> Olen tarkistanut
@@ -1324,6 +1320,7 @@
               <label class="choice"><input type="radio" name="tdValidity" /> Kyllä</label>
               <label class="choice"><input type="radio" name="tdValidity" /> Ei</label>
             </div>
+          </div>
         </div>
       </details>
 
@@ -2074,8 +2071,8 @@ function renderAppDetail(app) {
   panel.innerHTML = `
     <div class="detail-header">
       <div>
-        <div class="detail-title">${app.name}</div>
-        <div class="detail-sub">Järjestäjä: ${app.organizer}${app.tdName ? ' &nbsp;|&nbsp; TD: ' + app.tdName : ''}</div>
+        <div class="detail-title">${escapeHTML(app.name)}</div>
+        <div class="detail-sub">Järjestäjä: ${escapeHTML(app.organizer)}${app.tdName ? ' &nbsp;|&nbsp; TD: ' + escapeHTML(app.tdName) : ''}</div>
       </div>
       ${badgeHTML(app.status)}
     </div>
@@ -2085,14 +2082,14 @@ function renderAppDetail(app) {
         <div class="lifecycle-steps">${stepsHTML}</div>
       </div>
       <div class="info-grid">
-        <div class="info-item"><label>Paikkakunta</label><p>📍 ${app.city}</p></div>
+        <div class="info-item"><label>Paikkakunta</label><p>📍 ${escapeHTML(app.city)}</p></div>
         <div class="info-item"><label>Päivämäärä</label><p>📅 ${formatDate(app.date)}</p></div>
         <div class="info-item"><label>Taso</label><p>${tierBadgeHTML(app.tier)}</p></div>
-        <div class="info-item"><label>Rata</label><p>🥏 ${app.course || '—'}</p></div>
+        <div class="info-item"><label>Rata</label><p>🥏 ${escapeHTML(app.course || '—')}</p></div>
       </div>
       <div class="info-item" style="margin-bottom:20px">
-        ${app.email ? `<div style="display:flex;gap:6px;align-items:center;font-size:13px;margin-bottom:6px">✉️ ${app.email}</div>` : ''}
-        ${app.website ? `<div style="display:flex;gap:6px;align-items:center;font-size:13px">🌐 ${app.website}</div>` : ''}
+        ${app.email ? `<div style="display:flex;gap:6px;align-items:center;font-size:13px;margin-bottom:6px">✉️ ${escapeHTML(app.email)}</div>` : ''}
+        ${app.website ? `<div style="display:flex;gap:6px;align-items:center;font-size:13px">🌐 ${escapeHTML(app.website)}</div>` : ''}
       </div>
       ${isWorkRole(currentRole) ? `
         <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -2293,12 +2290,12 @@ function badgeHTML(status) {
 }
 
 function formatDate(iso) {
-  const d = new Date(iso);
+  const d = parseISODate(iso);
   return d.toLocaleDateString('fi-FI', { day:'2-digit', month:'2-digit', year:'numeric' });
 }
 
 function formatDateLong(iso) {
-  const d = new Date(iso);
+  const d = parseISODate(iso);
   return d.toLocaleDateString('fi-FI', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
 }
 
@@ -2367,7 +2364,7 @@ function showCompetitionDetails(id) {
   body.innerHTML = `
     <div class="comp-detail-grid">
       <div class="comp-detail-header">
-        <h2>${app.name}</h2>
+        <h2>${escapeHTML(app.name)}</h2>
         ${tierBadgeHTML(app.tier)}
         ${badgeHTML(app.status)}
       </div>
@@ -2377,40 +2374,40 @@ function showCompetitionDetails(id) {
       </div>
       <div class="comp-detail-row">
         <span class="comp-detail-icon">📍</span>
-        <div><strong>Paikkakunta</strong>${app.city}</div>
+        <div><strong>Paikkakunta</strong>${escapeHTML(app.city)}</div>
       </div>
       <div class="comp-detail-row">
         <span class="comp-detail-icon">🥏</span>
-        <div><strong>Rata</strong>${app.course || '—'}</div>
+        <div><strong>Rata</strong>${escapeHTML(app.course || '—')}</div>
       </div>
       <div class="comp-detail-row">
         <span class="comp-detail-icon">🏢</span>
-        <div><strong>Järjestäjä</strong>${app.organizer || '—'}</div>
+        <div><strong>Järjestäjä</strong>${escapeHTML(app.organizer || '—')}</div>
       </div>
       ${app.tdName ? `
       <div class="comp-detail-row">
         <span class="comp-detail-icon">👤</span>
-        <div><strong>Kilpailunjohtaja (TD)</strong>${app.tdName}${app.tdPdga ? ' · PDGA ' + app.tdPdga : ''}</div>
+        <div><strong>Kilpailunjohtaja (TD)</strong>${escapeHTML(app.tdName)}${app.tdPdga ? ' · PDGA ' + escapeHTML(app.tdPdga) : ''}</div>
       </div>` : ''}
       ${app.email ? `
       <div class="comp-detail-row">
         <span class="comp-detail-icon">✉️</span>
-        <div><strong>Sähköposti</strong>${app.email}</div>
+        <div><strong>Sähköposti</strong>${escapeHTML(app.email)}</div>
       </div>` : ''}
       ${app.website ? `
       <div class="comp-detail-row">
         <span class="comp-detail-icon">🌐</span>
-        <div><strong>Verkkosivut</strong>${app.website}</div>
+        <div><strong>Verkkosivut</strong>${escapeHTML(app.website)}</div>
       </div>` : ''}
       ${app.maxPlayers ? `
       <div class="comp-detail-row">
         <span class="comp-detail-icon">👥</span>
-        <div><strong>Pelaajamäärä (max)</strong>${app.maxPlayers}</div>
+        <div><strong>Pelaajamäärä (max)</strong>${escapeHTML(app.maxPlayers)}</div>
       </div>` : ''}
       ${app.holes ? `
       <div class="comp-detail-row">
         <span class="comp-detail-icon">🔢</span>
-        <div><strong>Väylät / kierros</strong>${app.holes}${app.rounds ? ' · ' + app.rounds + ' kierrosta' : ''}</div>
+        <div><strong>Väylät / kierros</strong>${escapeHTML(app.holes)}${app.rounds ? ' · ' + escapeHTML(app.rounds) + ' kierrosta' : ''}</div>
       </div>` : ''}
     </div>
   `;
