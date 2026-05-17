@@ -582,6 +582,132 @@
       padding: 2px 10px; border-radius: 12px;
       font-size: 13px; font-weight: 700;
     }
+    .rap-total-cell {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .rap-count-meta {
+      color: var(--clr-muted);
+      font-size: 12px;
+      line-height: 1.35;
+      white-space: nowrap;
+    }
+    .rap-city-trigger {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 42px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid #bfdbfe;
+      background: #eff6ff;
+      color: #1d4ed8;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .15s, border-color .15s, transform .1s;
+    }
+    .rap-city-trigger:hover {
+      background: #dbeafe;
+      border-color: #93c5fd;
+    }
+    .rap-city-trigger:active { transform: scale(.97); }
+    .rap-city-trigger-label {
+      display: block;
+      margin-top: 6px;
+      font-size: 11px;
+      color: var(--clr-muted);
+    }
+    .rap-year-toggle {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 0;
+      border: 0;
+      background: none;
+      color: inherit;
+      font: inherit;
+      cursor: pointer;
+      text-align: left;
+    }
+    .rap-year-toggle strong {
+      display: block;
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .rap-year-toggle span {
+      font-size: 12px;
+      color: var(--clr-muted);
+    }
+    .rap-year-toggle-icon {
+      color: var(--clr-sidebar-act);
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .rap-year-detail-row td {
+      padding: 0;
+      background: #fff;
+    }
+    .rap-year-detail-panel {
+      padding: 16px 18px 18px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    }
+    .rap-year-detail-head {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 16px;
+      align-items: baseline;
+      margin-bottom: 14px;
+    }
+    .rap-year-detail-head strong {
+      font-size: 14px;
+      color: var(--clr-text);
+    }
+    .rap-year-detail-head span {
+      font-size: 12px;
+      color: var(--clr-muted);
+    }
+    .rap-city-list {
+      display: grid;
+      gap: 10px;
+    }
+    .rap-city-list-columns {
+      columns: 220px;
+      column-gap: 16px;
+    }
+    .rap-city-list-item {
+      break-inside: avoid;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      padding: 10px 12px;
+      border: 1px solid var(--clr-border);
+      border-radius: 10px;
+      background: #fff;
+      margin-bottom: 10px;
+    }
+    .rap-city-list-item strong {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--clr-text);
+    }
+    .rap-city-list-item span {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--clr-muted);
+      white-space: nowrap;
+    }
+    .rap-modal-summary {
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: var(--clr-muted);
+      line-height: 1.5;
+    }
 
     /* ── Buttons ──────────────────────────────────────── */
     .btn {
@@ -1200,7 +1326,7 @@
             <tr>
               <th>Vuosi</th>
               <th style="text-align:center">Kilpailuja</th>
-              <th>Paikkakunta</th>
+              <th>Paikkakunnat</th>
             </tr>
           </thead>
           <tbody id="rapTableVuosiBody"></tbody>
@@ -1212,7 +1338,7 @@
             <tr>
               <th>Kuukausi</th>
               <th style="text-align:center">Kilpailuja</th>
-              <th>Paikkakunta</th>
+              <th style="text-align:center">KK</th>
             </tr>
           </thead>
           <tbody id="rapTableKuukausiBody"></tbody>
@@ -1647,6 +1773,18 @@
   </div>
 </div>
 
+<div id="raportointiCityModal" class="modal-backdrop" aria-hidden="true" onclick="dismissRaportointiCityModal(event)">
+  <div class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="raportointiCityModalTitle" style="max-width:560px">
+    <div class="modal-head">
+      <div>
+        <h1 id="raportointiCityModalTitle" class="modal-title">Paikkakunnat</h1>
+      </div>
+      <button class="modal-close" type="button" aria-label="Sulje paikkakuntalista" onclick="closeRaportointiCityModal()">✕</button>
+    </div>
+    <div id="raportointiCityModalBody" style="padding:24px;overflow-y:auto;max-height:calc(85dvh - 80px)"></div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script
@@ -1880,6 +2018,8 @@ let raportointiCompMap = null;
 let raportointiMarkerLayer = null;
 let raportointiTab = 'lista';
 let raportointiSubTab = 'vuosi';
+let raportointiExpandedYear = null;
+const raportointiBreakdowns = { vuosi: {}, kuukausi: {} };
 
 /* ===================================================
    STATE
@@ -2540,18 +2680,35 @@ function showCompetitionDetails(id) {
   const modal = document.getElementById('competitionDetailsModal');
   modal.classList.add('open');
   modal.setAttribute('aria-hidden', 'false');
-  document.body.style.overflow = 'hidden';
+  syncModalBodyLock();
 }
 
 function closeCompetitionDetailsModal() {
   const modal = document.getElementById('competitionDetailsModal');
   modal.classList.remove('open');
   modal.setAttribute('aria-hidden', 'true');
-  document.body.style.overflow = '';
+  syncModalBodyLock();
 }
 
 function dismissCompetitionDetailsModal(event) {
   if (event.target.id === 'competitionDetailsModal') closeCompetitionDetailsModal();
+}
+
+function syncModalBodyLock() {
+  const competitionModalOpen = document.getElementById('competitionDetailsModal')?.classList.contains('open');
+  const raportointiModalOpen = document.getElementById('raportointiCityModal')?.classList.contains('open');
+  document.body.style.overflow = competitionModalOpen || raportointiModalOpen ? 'hidden' : '';
+}
+
+function closeRaportointiCityModal() {
+  const modal = document.getElementById('raportointiCityModal');
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden', 'true');
+  syncModalBodyLock();
+}
+
+function dismissRaportointiCityModal(event) {
+  if (event.target.id === 'raportointiCityModal') closeRaportointiCityModal();
 }
 
 /* ===================================================
@@ -2569,6 +2726,7 @@ function closeSidebar() {
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     closeCompetitionDetailsModal();
+    closeRaportointiCityModal();
   }
 });
 
@@ -2617,6 +2775,54 @@ function renderRaportointiLista() {
   }
 }
 
+function formatPaikkakuntaCount(count) {
+  return `${count} ${count === 1 ? 'paikkakunta' : 'paikkakuntaa'}`;
+}
+
+function sortRaportointiCities(cityMap) {
+  return Object.entries(cityMap).sort((a, b) => (b[1] - a[1]) || a[0].localeCompare(b[0], 'fi'));
+}
+
+function renderRaportointiCountCell(total, cityCount) {
+  return `<div class="rap-total-cell">
+    <span class="rap-count-badge">${total}</span>
+    <span class="rap-count-meta">(${formatPaikkakuntaCount(cityCount)})</span>
+  </div>`;
+}
+
+function renderRaportointiCityList(entries, useColumns = false) {
+  const listClass = useColumns ? 'rap-city-list rap-city-list-columns' : 'rap-city-list';
+  return `<div class="${listClass}">
+    ${entries.map(([city, count]) => `
+      <div class="rap-city-list-item">
+        <strong>📍 ${escapeHTML(city)}</strong>
+        <span>${count}</span>
+      </div>
+    `).join('')}
+  </div>`;
+}
+
+function openRaportointiCityModal(type, key) {
+  const data = raportointiBreakdowns[type]?.[key];
+  if (!data) return;
+  document.getElementById('raportointiCityModalTitle').textContent = `Paikkakunnat · ${data.label}`;
+  document.getElementById('raportointiCityModalBody').innerHTML = `
+    <div class="rap-modal-summary">
+      Kilpailuja <strong>${data.total}</strong> (${formatPaikkakuntaCount(data.cityEntries.length)}).
+    </div>
+    ${renderRaportointiCityList(data.cityEntries)}
+  `;
+  const modal = document.getElementById('raportointiCityModal');
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden', 'false');
+  syncModalBodyLock();
+}
+
+function toggleRaportointiYear(year) {
+  raportointiExpandedYear = raportointiExpandedYear === year ? null : year;
+  renderRaportointiLista();
+}
+
 function renderRaportointiVuosi(apps) {
   /* Build: { year -> { city -> count } } */
   const yearCityMap = {};
@@ -2627,6 +2833,7 @@ function renderRaportointiVuosi(apps) {
   });
   const years = Object.keys(yearCityMap).sort((a, b) => b - a);
   const tbody = document.getElementById('rapTableVuosiBody');
+  raportointiBreakdowns.vuosi = {};
   if (!years.length) {
     tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:var(--clr-muted);padding:20px">Ei kilpailuja.</td></tr>`;
     return;
@@ -2635,24 +2842,36 @@ function renderRaportointiVuosi(apps) {
   years.forEach((year, yi) => {
     const cityMap = yearCityMap[year];
     const total = Object.values(cityMap).reduce((s, v) => s + v, 0);
-    const cities = Object.entries(cityMap).sort((a, b) => b[1] - a[1]);
+    const cities = sortRaportointiCities(cityMap);
+    raportointiBreakdowns.vuosi[year] = { label: year, total, cityEntries: cities };
     const altClass = yi % 2 === 1 ? 'rap-row-alt' : '';
-    cities.forEach((entry, ci) => {
-      const [city, count] = entry;
-      if (ci === 0) {
-        html += `<tr class="${altClass}" style="border-top:2px solid var(--clr-border)">
-          <td rowspan="${cities.length}" style="font-weight:700;vertical-align:top;border-right:1px solid var(--clr-border)">${year}</td>
-          <td rowspan="${cities.length}" style="vertical-align:top;border-right:1px solid var(--clr-border);text-align:center">
-            <span class="rap-count-badge">${total}</span>
-          </td>
-          <td>📍 ${escapeHTML(city)} <span style="color:var(--clr-muted);font-size:12px">(${count})</span></td>
-        </tr>`;
-      } else {
-        html += `<tr class="${altClass}">
-          <td>📍 ${escapeHTML(city)} <span style="color:var(--clr-muted);font-size:12px">(${count})</span></td>
-        </tr>`;
-      }
-    });
+    const isExpanded = raportointiExpandedYear === year;
+    html += `<tr class="${altClass}" style="border-top:2px solid var(--clr-border)">
+      <td style="font-weight:700;border-right:1px solid var(--clr-border)">
+        <button type="button" class="rap-year-toggle" onclick="toggleRaportointiYear('${year}')" aria-expanded="${isExpanded ? 'true' : 'false'}" aria-controls="rapYearCities-${year}">
+          <span>
+            <strong>${year}</strong>
+            <span>${isExpanded ? 'Piilota paikkakunnat' : 'Näytä paikkakunnat'}</span>
+          </span>
+          <span class="rap-year-toggle-icon">${isExpanded ? '▲' : '▼'}</span>
+        </button>
+      </td>
+      <td style="border-right:1px solid var(--clr-border);text-align:center">${renderRaportointiCountCell(total, cities.length)}</td>
+      <td>${isExpanded ? '<span style="color:var(--clr-sidebar-act);font-weight:600">Paikkakunnat avattu alle</span>' : '<span style="color:var(--clr-muted)">Avaa vuoden tiedot nähdäksesi paikkakunnat</span>'}</td>
+    </tr>`;
+    if (isExpanded) {
+      html += `<tr class="rap-year-detail-row ${altClass}">
+        <td colspan="3" id="rapYearCities-${year}">
+          <div class="rap-year-detail-panel">
+            <div class="rap-year-detail-head">
+              <strong>${year} · ${cities.length} paikkakuntaa</strong>
+              <span>Kilpailut paikkakunnittain suurimmasta pienimpään</span>
+            </div>
+            ${renderRaportointiCityList(cities, true)}
+          </div>
+        </td>
+      </tr>`;
+    }
   });
   tbody.innerHTML = html;
 }
@@ -2667,6 +2886,7 @@ function renderRaportointiKuukausi(apps) {
   });
   const months = Object.keys(monthCityMap).sort((a, b) => b.localeCompare(a));
   const tbody = document.getElementById('rapTableKuukausiBody');
+  raportointiBreakdowns.kuukausi = {};
   if (!months.length) {
     tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:var(--clr-muted);padding:20px">Ei kilpailuja.</td></tr>`;
     return;
@@ -2675,26 +2895,19 @@ function renderRaportointiKuukausi(apps) {
   months.forEach((ym, mi) => {
     const cityMap = monthCityMap[ym];
     const total = Object.values(cityMap).reduce((s, v) => s + v, 0);
-    const cities = Object.entries(cityMap).sort((a, b) => b[1] - a[1]);
+    const cities = sortRaportointiCities(cityMap);
     const altClass = mi % 2 === 1 ? 'rap-row-alt' : '';
     const [year, month] = ym.split('-');
     const label = FI_MONTHS[parseInt(month, 10) - 1] + ' ' + year;
-    cities.forEach((entry, ci) => {
-      const [city, count] = entry;
-      if (ci === 0) {
-        html += `<tr class="${altClass}" style="border-top:2px solid var(--clr-border)">
-          <td rowspan="${cities.length}" style="font-weight:600;vertical-align:top;border-right:1px solid var(--clr-border);text-transform:capitalize">${label}</td>
-          <td rowspan="${cities.length}" style="vertical-align:top;border-right:1px solid var(--clr-border);text-align:center">
-            <span class="rap-count-badge">${total}</span>
-          </td>
-          <td>📍 ${escapeHTML(city)} <span style="color:var(--clr-muted);font-size:12px">(${count})</span></td>
-        </tr>`;
-      } else {
-        html += `<tr class="${altClass}">
-          <td>📍 ${escapeHTML(city)} <span style="color:var(--clr-muted);font-size:12px">(${count})</span></td>
-        </tr>`;
-      }
-    });
+    raportointiBreakdowns.kuukausi[ym] = { label, total, cityEntries: cities };
+    html += `<tr class="${altClass}" style="border-top:2px solid var(--clr-border)">
+      <td style="font-weight:600;border-right:1px solid var(--clr-border);text-transform:capitalize">${label}</td>
+      <td style="border-right:1px solid var(--clr-border);text-align:center">${renderRaportointiCountCell(total, cities.length)}</td>
+      <td style="text-align:center">
+        <button type="button" class="rap-city-trigger" onclick="openRaportointiCityModal('kuukausi', '${ym}')">${cities.length}</button>
+        <span class="rap-city-trigger-label">Avaa paikkakunnat</span>
+      </td>
+    </tr>`;
   });
   tbody.innerHTML = html;
 }
