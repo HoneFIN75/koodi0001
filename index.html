@@ -539,6 +539,50 @@
       z-index: 3;
     }
 
+    /* ── RAPORTOINTI VIEW ─────────────────────────────── */
+    .raportointi-tabs {
+      display: flex; gap: 0;
+      border-bottom: 2px solid var(--clr-border);
+      margin-bottom: 0;
+    }
+    .raportointi-tab-btn {
+      background: none; border: none;
+      border-bottom: 3px solid transparent; margin-bottom: -2px;
+      padding: 10px 20px; font-size: 14px; font-weight: 600;
+      cursor: pointer; color: var(--clr-muted);
+      transition: color .15s, border-color .15s;
+    }
+    .raportointi-tab-btn.active {
+      color: var(--clr-sidebar-act);
+      border-bottom-color: var(--clr-sidebar-act);
+    }
+    .raportointi-tab-btn:hover:not(.active) { color: var(--clr-text); }
+    .raportti-sub-tabs {
+      display: flex; gap: 8px; padding: 12px 16px 0;
+      background: var(--clr-card); border: 1px solid var(--clr-border);
+      border-bottom: none; border-radius: var(--radius) var(--radius) 0 0;
+    }
+    .raportti-sub-tab-btn {
+      background: none; border: 1px solid transparent;
+      border-radius: 6px 6px 0 0; padding: 7px 16px;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      color: var(--clr-muted); transition: background .15s, color .15s;
+    }
+    .raportti-sub-tab-btn.active { background: var(--clr-sidebar-act); color: #fff; }
+    .raportti-sub-tab-btn:hover:not(.active) { background: var(--clr-bg); color: var(--clr-text); }
+    .raportti-year-select {
+      padding: 6px 10px; border: 1px solid var(--clr-border);
+      border-radius: 6px; font-size: 14px; cursor: pointer;
+      background: var(--clr-card); color: var(--clr-text);
+    }
+    #raportointiMap { height: 500px; width: 100%; }
+    .rap-row-alt td { background: var(--clr-bg); }
+    .rap-count-badge {
+      background: #dbeafe; color: #1d4ed8;
+      padding: 2px 10px; border-radius: 12px;
+      font-size: 13px; font-weight: 700;
+    }
+
     /* ── Buttons ──────────────────────────────────────── */
     .btn {
       display: inline-flex; align-items: center; gap: 6px;
@@ -975,6 +1019,9 @@
   <button type="button" class="nav-item" id="nav-kartta" onclick="navigate('kartta')">
     <span class="nav-icon" aria-hidden="true">🗺️</span> Kartta
   </button>
+  <button type="button" class="nav-item" id="nav-raportointi" onclick="navigate('raportointi')">
+    <span class="nav-icon" aria-hidden="true">📊</span> Raportointi
+  </button>
 
   <div class="sidebar-footer">
     Prototyyppi v1<br>
@@ -1021,6 +1068,7 @@
         <div><strong>Kalenteri</strong> – Julkiset ja hyväksytyt kilpailut aikajärjestyksessä korttinäkymänä.</div>
         <div><strong>Lista</strong> – Tiivis taulukkonäkymä julkisista kilpailuista.</div>
         <div><strong>Kartta</strong> – Kilpailut paikkakunnittain karttapohjaisessa näkymässä (placeholder).</div>
+        <div><strong>Raportointi</strong> – Kilpailujen määrät vuosi- ja kuukausitasolla: lista- ja karttanäkymä.</div>
       </div>
     </div>
   </div>
@@ -1123,6 +1171,66 @@
     <div class="map-shell" id="mapArea">
       <div id="leafletMap" aria-label="Suomen kilpailukartta"></div>
       <div id="mapEmptyNote" class="map-empty-note" style="display:none"></div>
+    </div>
+  </div>
+
+  <!-- RAPORTOINTI VIEW -->
+  <div class="view" id="view-raportointi">
+    <div class="section-header">
+      <div class="section-headline">
+        <h1 class="section-title">Raportointi</h1>
+        <span style="font-size:13px;color:var(--clr-muted)">Kilpailujen määrät vuosi- ja kuukausitasolla</span>
+      </div>
+    </div>
+    <!-- Main tab bar: Lista / Kartta -->
+    <div class="raportointi-tabs">
+      <button class="raportointi-tab-btn active" id="rapTabLista" onclick="switchRaportointiTab('lista')">📋 Lista</button>
+      <button class="raportointi-tab-btn" id="rapTabKartta" onclick="switchRaportointiTab('kartta')">🗺️ Kartta</button>
+    </div>
+
+    <!-- Lista panel -->
+    <div id="rapPanelLista">
+      <div class="raportti-sub-tabs">
+        <button class="raportti-sub-tab-btn active" id="rapSubVuosi" onclick="switchRaportointiSubTab('vuosi')">Vuosi</button>
+        <button class="raportti-sub-tab-btn" id="rapSubKuukausi" onclick="switchRaportointiSubTab('kuukausi')">Kuukausi</button>
+      </div>
+      <div id="rapSubPanelVuosi" class="card table-wrap" style="margin-top:0;border-radius:0 0 var(--radius) var(--radius)">
+        <table class="list-table">
+          <thead>
+            <tr>
+              <th>Vuosi</th>
+              <th style="text-align:center">Kilpailuja</th>
+              <th>Paikkakunta</th>
+            </tr>
+          </thead>
+          <tbody id="rapTableVuosiBody"></tbody>
+        </table>
+      </div>
+      <div id="rapSubPanelKuukausi" class="card table-wrap" style="display:none;margin-top:0;border-radius:0 0 var(--radius) var(--radius)">
+        <table class="list-table">
+          <thead>
+            <tr>
+              <th>Kuukausi</th>
+              <th style="text-align:center">Kilpailuja</th>
+              <th>Paikkakunta</th>
+            </tr>
+          </thead>
+          <tbody id="rapTableKuukausiBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Kartta panel -->
+    <div id="rapPanelKartta" style="display:none">
+      <div class="card" style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom:none;margin-bottom:0">
+        <label for="rapYearSelect" style="font-weight:600;font-size:14px">Vuosi:</label>
+        <select id="rapYearSelect" class="raportti-year-select" onchange="renderRaportointiKartta()"></select>
+        <span id="rapMapYearInfo" style="font-size:13px;color:var(--clr-muted)"></span>
+      </div>
+      <div class="map-shell" style="border-top-left-radius:0;border-top-right-radius:0;border-top:none;border-color:var(--clr-border)">
+        <div id="raportointiMap" aria-label="Raportoinnin kilpailukartta"></div>
+        <div id="rapMapEmptyNote" class="map-empty-note" style="display:none"></div>
+      </div>
     </div>
   </div>
 
@@ -1760,8 +1868,18 @@ const MAP_MARKER_STYLE = {
   fillColor: '#3b82f6',
   fillOpacity: 0.75,
 };
+const RAP_MAP_MARKER_STYLE = {
+  strokeColor: '#065f46',
+  strokeWeight: 2,
+  fillColor: '#10b981',
+  fillOpacity: 0.75,
+};
 let competitionMap = null;
 let cityMarkerLayer = null;
+let raportointiCompMap = null;
+let raportointiMarkerLayer = null;
+let raportointiTab = 'lista';
+let raportointiSubTab = 'vuosi';
 
 /* ===================================================
    STATE
@@ -1814,6 +1932,7 @@ const VIEW_TITLES = {
   kalenteri:  'Kalenteri',
   lista:      'Lista',
   kartta:     'Kartta',
+  raportointi: 'Raportointi',
 };
 
 const VIEW_NAV_ITEMS = {
@@ -1836,6 +1955,7 @@ function navigate(viewId) {
   if (viewId === 'kalenteri') renderCalendar();
   if (viewId === 'lista')     renderList();
   if (viewId === 'kartta')    renderMap();
+  if (viewId === 'raportointi') renderRaportointi();
 
   closeSidebar();
 }
@@ -2255,7 +2375,7 @@ function calculateMarkerRadius(cityCompetitionCount) {
 }
 
 function buildCityPopupHTML(city, apps) {
-  const countLabel = `${apps.length} kilpailu${apps.length === 1 ? '' : 'a'}`;
+  const countLabel = pluralizeKilpailu(apps.length);
   const items = apps.map(a => `
     <div class="map-popup-item" onclick="showCompetitionDetails(${a.id})" style="cursor:pointer">
       <div class="pname">${a.name}</div>
@@ -2286,6 +2406,10 @@ function warnMissingCityCoordinates(missing) {
 /* ===================================================
    HELPERS
    =================================================== */
+function pluralizeKilpailu(n) {
+  return `${n} kilpailu${n === 1 ? '' : 'a'}`;
+}
+
 function badgeHTML(status) {
   const s = STATUSES[status] || { label: status, cls: 'badge-draft' };
   return `<span class="badge ${s.cls}">${s.label}</span>`;
@@ -2447,6 +2571,217 @@ document.addEventListener('keydown', e => {
     closeCompetitionDetailsModal();
   }
 });
+
+/* ===================================================
+   RAPORTOINTI VIEW
+   =================================================== */
+const FI_MONTHS = [
+  'tammikuu', 'helmikuu', 'maaliskuu', 'huhtikuu',
+  'toukokuu', 'kesäkuu',  'heinäkuu',  'elokuu',
+  'syyskuu',  'lokakuu',  'marraskuu', 'joulukuu',
+];
+
+function getRaportointiApps() {
+  return isWorkRole(currentRole) ? APPLICATIONS : publicApps();
+}
+
+function renderRaportointi() {
+  renderRaportointiLista();
+  populateRaportointiYearSelect();
+}
+
+function switchRaportointiTab(tab) {
+  raportointiTab = tab;
+  document.getElementById('rapTabLista').classList.toggle('active', tab === 'lista');
+  document.getElementById('rapTabKartta').classList.toggle('active', tab === 'kartta');
+  document.getElementById('rapPanelLista').style.display = tab === 'lista' ? '' : 'none';
+  document.getElementById('rapPanelKartta').style.display = tab === 'kartta' ? '' : 'none';
+  if (tab === 'kartta') renderRaportointiKartta();
+}
+
+function switchRaportointiSubTab(subTab) {
+  raportointiSubTab = subTab;
+  document.getElementById('rapSubVuosi').classList.toggle('active', subTab === 'vuosi');
+  document.getElementById('rapSubKuukausi').classList.toggle('active', subTab === 'kuukausi');
+  document.getElementById('rapSubPanelVuosi').style.display = subTab === 'vuosi' ? '' : 'none';
+  document.getElementById('rapSubPanelKuukausi').style.display = subTab === 'kuukausi' ? '' : 'none';
+  renderRaportointiLista();
+}
+
+function renderRaportointiLista() {
+  const apps = getRaportointiApps();
+  if (raportointiSubTab === 'vuosi') {
+    renderRaportointiVuosi(apps);
+  } else {
+    renderRaportointiKuukausi(apps);
+  }
+}
+
+function renderRaportointiVuosi(apps) {
+  /* Build: { year -> { city -> count } } */
+  const yearCityMap = {};
+  apps.forEach(a => {
+    const year = a.date.substring(0, 4);
+    if (!yearCityMap[year]) yearCityMap[year] = {};
+    yearCityMap[year][a.city] = (yearCityMap[year][a.city] || 0) + 1;
+  });
+  const years = Object.keys(yearCityMap).sort((a, b) => b - a);
+  const tbody = document.getElementById('rapTableVuosiBody');
+  if (!years.length) {
+    tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:var(--clr-muted);padding:20px">Ei kilpailuja.</td></tr>`;
+    return;
+  }
+  let html = '';
+  years.forEach((year, yi) => {
+    const cityMap = yearCityMap[year];
+    const total = Object.values(cityMap).reduce((s, v) => s + v, 0);
+    const cities = Object.entries(cityMap).sort((a, b) => b[1] - a[1]);
+    const altClass = yi % 2 === 1 ? 'rap-row-alt' : '';
+    cities.forEach((entry, ci) => {
+      const [city, count] = entry;
+      if (ci === 0) {
+        html += `<tr class="${altClass}" style="border-top:2px solid var(--clr-border)">
+          <td rowspan="${cities.length}" style="font-weight:700;vertical-align:top;border-right:1px solid var(--clr-border)">${year}</td>
+          <td rowspan="${cities.length}" style="vertical-align:top;border-right:1px solid var(--clr-border);text-align:center">
+            <span class="rap-count-badge">${total}</span>
+          </td>
+          <td>📍 ${escapeHTML(city)} <span style="color:var(--clr-muted);font-size:12px">(${count})</span></td>
+        </tr>`;
+      } else {
+        html += `<tr class="${altClass}">
+          <td>📍 ${escapeHTML(city)} <span style="color:var(--clr-muted);font-size:12px">(${count})</span></td>
+        </tr>`;
+      }
+    });
+  });
+  tbody.innerHTML = html;
+}
+
+function renderRaportointiKuukausi(apps) {
+  /* Build: { "YYYY-MM" -> { city -> count } } */
+  const monthCityMap = {};
+  apps.forEach(a => {
+    const key = a.date.substring(0, 7);
+    if (!monthCityMap[key]) monthCityMap[key] = {};
+    monthCityMap[key][a.city] = (monthCityMap[key][a.city] || 0) + 1;
+  });
+  const months = Object.keys(monthCityMap).sort((a, b) => b.localeCompare(a));
+  const tbody = document.getElementById('rapTableKuukausiBody');
+  if (!months.length) {
+    tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:var(--clr-muted);padding:20px">Ei kilpailuja.</td></tr>`;
+    return;
+  }
+  let html = '';
+  months.forEach((ym, mi) => {
+    const cityMap = monthCityMap[ym];
+    const total = Object.values(cityMap).reduce((s, v) => s + v, 0);
+    const cities = Object.entries(cityMap).sort((a, b) => b[1] - a[1]);
+    const altClass = mi % 2 === 1 ? 'rap-row-alt' : '';
+    const [year, month] = ym.split('-');
+    const label = FI_MONTHS[parseInt(month, 10) - 1] + ' ' + year;
+    cities.forEach((entry, ci) => {
+      const [city, count] = entry;
+      if (ci === 0) {
+        html += `<tr class="${altClass}" style="border-top:2px solid var(--clr-border)">
+          <td rowspan="${cities.length}" style="font-weight:600;vertical-align:top;border-right:1px solid var(--clr-border);text-transform:capitalize">${label}</td>
+          <td rowspan="${cities.length}" style="vertical-align:top;border-right:1px solid var(--clr-border);text-align:center">
+            <span class="rap-count-badge">${total}</span>
+          </td>
+          <td>📍 ${escapeHTML(city)} <span style="color:var(--clr-muted);font-size:12px">(${count})</span></td>
+        </tr>`;
+      } else {
+        html += `<tr class="${altClass}">
+          <td>📍 ${escapeHTML(city)} <span style="color:var(--clr-muted);font-size:12px">(${count})</span></td>
+        </tr>`;
+      }
+    });
+  });
+  tbody.innerHTML = html;
+}
+
+function populateRaportointiYearSelect() {
+  const apps = getRaportointiApps();
+  const years = [...new Set(apps.map(a => a.date.substring(0, 4)))].sort((a, b) => b - a);
+  const sel = document.getElementById('rapYearSelect');
+  const current = sel.value;
+  sel.innerHTML = years.map(y =>
+    `<option value="${y}"${y === current ? ' selected' : ''}>${y}</option>`
+  ).join('');
+  if (!sel.value && years.length) sel.value = years[0];
+}
+
+function renderRaportointiKartta() {
+  const emptyNote = document.getElementById('rapMapEmptyNote');
+  const infoEl = document.getElementById('rapMapYearInfo');
+  if (typeof L === 'undefined') {
+    emptyNote.textContent = 'Karttapalvelua ei voitu ladata.';
+    emptyNote.style.display = 'block';
+    return;
+  }
+  initRaportointiMap();
+  if (!raportointiCompMap || !raportointiMarkerLayer) return;
+
+  const year = document.getElementById('rapYearSelect').value;
+  const apps = getRaportointiApps().filter(a => a.date.startsWith(year));
+  raportointiMarkerLayer.clearLayers();
+  raportointiCompMap.closePopup();
+
+  if (!apps.length) {
+    emptyNote.textContent = `Ei kilpailuja vuodelle ${year}.`;
+    emptyNote.style.display = 'block';
+    infoEl.textContent = '';
+    return;
+  }
+  emptyNote.style.display = 'none';
+  infoEl.textContent = pluralizeKilpailu(apps.length);
+
+  const appsByCity = groupAppsByCity(apps);
+  const markerLatLngs = [];
+  Object.entries(appsByCity).forEach(([city, cityApps]) => {
+    const coords = getCityCoordinates(city);
+    if (!coords) return;
+    markerLatLngs.push(coords);
+    const marker = L.circleMarker(coords, {
+      radius: calculateMarkerRadius(cityApps.length),
+      color: RAP_MAP_MARKER_STYLE.strokeColor,
+      weight: RAP_MAP_MARKER_STYLE.strokeWeight,
+      fillColor: RAP_MAP_MARKER_STYLE.fillColor,
+      fillOpacity: RAP_MAP_MARKER_STYLE.fillOpacity,
+    });
+    marker.bindTooltip(`${city} (${cityApps.length})`);
+    marker.bindPopup(buildCityPopupHTML(city, cityApps), { maxWidth: 340 });
+    marker.addTo(raportointiMarkerLayer);
+  });
+
+  if (!markerLatLngs.length) {
+    emptyNote.textContent = 'Paikkakunnille ei löytynyt koordinaatteja.';
+    emptyNote.style.display = 'block';
+    raportointiCompMap.setView(FINLAND_MAP_CENTER, FINLAND_MAP_ZOOM);
+    return;
+  }
+  if (markerLatLngs.length === 1) {
+    raportointiCompMap.setView(markerLatLngs[0], 7);
+  } else {
+    raportointiCompMap.fitBounds(L.latLngBounds(markerLatLngs), { padding: [36, 36], maxZoom: 7 });
+  }
+  requestAnimationFrame(() => raportointiCompMap.invalidateSize());
+}
+
+function initRaportointiMap() {
+  if (raportointiCompMap || typeof L === 'undefined') return;
+  raportointiCompMap = L.map('raportointiMap', {
+    center: FINLAND_MAP_CENTER,
+    zoom: FINLAND_MAP_ZOOM,
+    minZoom: FINLAND_MAP_MIN_ZOOM,
+    maxZoom: FINLAND_MAP_MAX_ZOOM,
+    zoomControl: true,
+  });
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: FINLAND_MAP_MAX_ZOOM,
+    attribution: '&copy; OpenStreetMap contributors',
+  }).addTo(raportointiCompMap);
+  raportointiMarkerLayer = L.layerGroup().addTo(raportointiCompMap);
+}
 
 /* ===================================================
    INIT
