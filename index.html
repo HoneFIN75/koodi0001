@@ -2017,6 +2017,7 @@ let cityMarkerLayer = null;
 let raportointiCompMap = null;
 let raportointiMarkerLayer = null;
 const CITY_BOUNDARY_CACHE = {};
+let raportointiCurrentBoundaryRequestId = 0;
 let raportointiTab = 'lista';
 let raportointiSubTab = 'vuosi';
 let raportointiExpandedYear = null;
@@ -2929,18 +2930,22 @@ async function fetchCityBoundary(city) {
     return CITY_BOUNDARY_CACHE[city];
   }
   try {
-    const url = 'https://nominatim.openstreetmap.org/search?' +
-      'q=' + encodeURIComponent(city + ', Suomi') +
-      '&format=geojson&polygon_geojson=1&limit=1&countrycodes=fi&addressdetails=0';
+    const params = new URLSearchParams({
+      q: `${city}, Finland`,
+      format: 'jsonv2',
+      polygon_geojson: '1',
+      limit: '5',
+      countrycodes: 'fi',
+      addressdetails: '1',
+    });
+    const url = `https://nominatim.openstreetmap.org/search?${params.toString()}`;
     const resp = await fetch(url, { headers: { 'Accept-Language': 'fi' } });
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
-    const data = await resp.json();
-    if (data.features && data.features.length > 0) {
-      const geom = data.features[0].geometry;
-      if (geom && (geom.type === 'Polygon' || geom.type === 'MultiPolygon')) {
-        CITY_BOUNDARY_CACHE[city] = geom;
-        return geom;
-      }
+    const results = await resp.json();
+    const geom = extractBoundaryGeometryFromNominatimResults(results);
+    if (geom) {
+      CITY_BOUNDARY_CACHE[city] = geom;
+      return geom;
     }
     CITY_BOUNDARY_CACHE[city] = null;
     return null;
@@ -2949,6 +2954,22 @@ async function fetchCityBoundary(city) {
     CITY_BOUNDARY_CACHE[city] = null;
     return null;
   }
+}
+
+function extractBoundaryGeometryFromNominatimResults(results) {
+  if (!Array.isArray(results) || !results.length) return null;
+  const isPolygon = (geojson) => geojson && (geojson.type === 'Polygon' || geojson.type === 'MultiPolygon');
+
+  const adminBoundary = results.find(item =>
+    item &&
+    item.class === 'boundary' &&
+    item.type === 'administrative' &&
+    isPolygon(item.geojson)
+  );
+  if (adminBoundary) return adminBoundary.geojson;
+
+  const anyPolygon = results.find(item => item && isPolygon(item.geojson));
+  return anyPolygon ? anyPolygon.geojson : null;
 }
 
 async function fetchCityBoundariesSequential(cities) {
@@ -2968,9 +2989,11 @@ async function fetchCityBoundariesSequential(cities) {
 async function renderRaportointiKartta() {
   const emptyNote = document.getElementById('rapMapEmptyNote');
   const infoEl = document.getElementById('rapMapYearInfo');
+  const requestId = ++raportointiCurrentBoundaryRequestId;
   if (typeof L === 'undefined') {
     emptyNote.textContent = 'Karttapalvelua ei voitu ladata.';
     emptyNote.style.display = 'block';
+    infoEl.textContent = '';
     return;
   }
   initRaportointiMap();
@@ -2994,11 +3017,12 @@ async function renderRaportointiKartta() {
 
   const uncachedCount = cities.filter(c => !Object.prototype.hasOwnProperty.call(CITY_BOUNDARY_CACHE, c)).length;
   if (uncachedCount) {
-    emptyNote.textContent = 'Haetaan alurajoja…';
+    emptyNote.textContent = 'Haetaan aluerajoja…';
     emptyNote.style.display = 'block';
   }
 
   const boundaries = await fetchCityBoundariesSequential(cities);
+  if (requestId !== raportointiCurrentBoundaryRequestId) return;
 
   emptyNote.style.display = 'none';
 
