@@ -2931,8 +2931,7 @@ async function fetchCityBoundary(city) {
   }
   try {
     const params = new URLSearchParams({
-      city,
-      country: 'Finland',
+      q: `${city}, Finland`,
       format: 'jsonv2',
       polygon_geojson: '1',
       limit: '5',
