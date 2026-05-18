@@ -1298,6 +1298,10 @@
         <button class="btn btn-ghost" onclick="setCurrentMonthFilter()" aria-label="Palauta nykyinen kuukausi">Nykyinen kuukausi</button>
       </div>
     </div>
+    <div class="hakemus-filter-group" style="margin-bottom:12px">
+      <div class="hakemus-filter-label">Kilpailutaso</div>
+      <div id="mapTierFilters" class="hakemus-filters"></div>
+    </div>
     <div class="map-shell" id="mapArea">
       <div id="leafletMap" aria-label="Suomen kilpailukartta"></div>
       <div id="mapEmptyNote" class="map-empty-note" style="display:none"></div>
@@ -2088,6 +2092,7 @@ let selectedAppId  = null;
 let filteredApps   = [...APPLICATIONS];
 let appSearchQuery = '';
 let selectedTierFilter = 'all';
+let mapTierFilter = 'all';
 const HAKEMUS_STAGES = ['draft', 'submitted', 'review', 'approved', 'published', 'rejected']
   .map((key) => ({ key, label: STATUSES[key]?.label || key }));
 let selectedStatusFilters = new Set(HAKEMUS_STAGES.map((stage) => stage.key));
@@ -2284,6 +2289,27 @@ function renderTierFilters() {
       `<button type="button" class="btn btn-ghost filter-btn ${selectedTierFilter === tier ? 'active' : ''}" data-tier="${escapeHTML(tier)}">${escapeHTML(tier)}</button>`
     )
   ].join('');
+}
+
+function renderMapTierFilters() {
+  const filtersEl = document.getElementById('mapTierFilters');
+  if (!filtersEl) return;
+  const tiers = getTierFilterOptions();
+  if (mapTierFilter !== 'all' && !tiers.includes(mapTierFilter)) {
+    mapTierFilter = 'all';
+  }
+  filtersEl.innerHTML = [
+    `<button type="button" class="btn btn-ghost filter-btn ${mapTierFilter === 'all' ? 'active' : ''}" data-tier="all">Kaikki tasot</button>`,
+    ...tiers.map(tier =>
+      `<button type="button" class="btn btn-ghost filter-btn ${mapTierFilter === tier ? 'active' : ''}" data-tier="${escapeHTML(tier)}">${escapeHTML(tier)}</button>`
+    )
+  ].join('');
+}
+
+function setMapTierFilter(tier) {
+  mapTierFilter = tier;
+  renderMapTierFilters();
+  renderMap();
 }
 
 function renderStatusFilters() {
@@ -2493,7 +2519,8 @@ function renderMap() {
 
   cityMarkerLayer.clearLayers();
   competitionMap.closePopup();
-  const apps = getFilteredPublicApps();
+  renderMapTierFilters();
+  const apps = getFilteredPublicApps().filter(a => mapTierFilter === 'all' || a.tier === mapTierFilter);
   if (!apps.length) {
     emptyNote.textContent = 'Ei kilpailuja valitulla suodatuksella.';
     emptyNote.style.display = 'block';
@@ -3168,6 +3195,14 @@ function initRaportointiMap() {
       const button = event.target.closest('button[data-tier]');
       if (!button) return;
       setTierFilter(button.dataset.tier);
+    });
+  }
+  const mapTierFiltersEl = document.getElementById('mapTierFilters');
+  if (mapTierFiltersEl) {
+    mapTierFiltersEl.addEventListener('click', (event) => {
+      const button = event.target.closest('button[data-tier]');
+      if (!button) return;
+      setMapTierFilter(button.dataset.tier);
     });
   }
   const appStatusFilters = document.getElementById('appStatusFilters');
