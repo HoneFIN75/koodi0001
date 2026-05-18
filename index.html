@@ -2016,6 +2016,7 @@ let competitionMap = null;
 let cityMarkerLayer = null;
 let raportointiCompMap = null;
 let raportointiMarkerLayer = null;
+const CITY_BOUNDARY_CACHE = {};
 let raportointiTab = 'lista';
 let raportointiSubTab = 'vuosi';
 let raportointiExpandedYear = null;
@@ -2923,7 +2924,34 @@ function populateRaportointiYearSelect() {
   if (!sel.value && years.length) sel.value = years[0];
 }
 
-function renderRaportointiKartta() {
+async function fetchCityBoundary(city) {
+  if (Object.prototype.hasOwnProperty.call(CITY_BOUNDARY_CACHE, city)) {
+    return CITY_BOUNDARY_CACHE[city];
+  }
+  try {
+    const url = 'https://nominatim.openstreetmap.org/search?' +
+      'q=' + encodeURIComponent(city + ', Suomi') +
+      '&format=geojson&polygon_geojson=1&limit=1&countrycodes=fi';
+    const resp = await fetch(url, { headers: { 'Accept-Language': 'fi' } });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const data = await resp.json();
+    if (data.features && data.features.length > 0) {
+      const geom = data.features[0].geometry;
+      if (geom && (geom.type === 'Polygon' || geom.type === 'MultiPolygon')) {
+        CITY_BOUNDARY_CACHE[city] = geom;
+        return geom;
+      }
+    }
+    CITY_BOUNDARY_CACHE[city] = null;
+    return null;
+  } catch (e) {
+    console.warn('Kaupungin rajaa ei voitu hakea:', city, e);
+    CITY_BOUNDARY_CACHE[city] = null;
+    return null;
+  }
+}
+
+async function renderRaportointiKartta() {
   const emptyNote = document.getElementById('rapMapEmptyNote');
   const infoEl = document.getElementById('rapMapYearInfo');
   if (typeof L === 'undefined') {
@@ -2945,37 +2973,69 @@ function renderRaportointiKartta() {
     infoEl.textContent = '';
     return;
   }
-  emptyNote.style.display = 'none';
   infoEl.textContent = pluralizeKilpailu(apps.length);
 
   const appsByCity = groupAppsByCity(apps);
-  const markerLatLngs = [];
-  Object.entries(appsByCity).forEach(([city, cityApps]) => {
-    const coords = getCityCoordinates(city);
-    if (!coords) return;
-    markerLatLngs.push(coords);
-    const marker = L.circleMarker(coords, {
-      radius: calculateMarkerRadius(cityApps.length),
-      color: RAP_MAP_MARKER_STYLE.strokeColor,
-      weight: RAP_MAP_MARKER_STYLE.strokeWeight,
-      fillColor: RAP_MAP_MARKER_STYLE.fillColor,
-      fillOpacity: RAP_MAP_MARKER_STYLE.fillOpacity,
-    });
-    marker.bindTooltip(`${city} (${cityApps.length})`);
-    marker.bindPopup(buildCityPopupHTML(city, cityApps), { maxWidth: 340 });
-    marker.addTo(raportointiMarkerLayer);
+  const cities = Object.keys(appsByCity);
+
+  const uncached = cities.filter(c => !Object.prototype.hasOwnProperty.call(CITY_BOUNDARY_CACHE, c));
+  if (uncached.length) {
+    emptyNote.textContent = 'Haetaan alurajoja…';
+    emptyNote.style.display = 'block';
+  }
+
+  const boundaries = await Promise.all(cities.map(c => fetchCityBoundary(c)));
+
+  emptyNote.style.display = 'none';
+
+  const layerBoundsArr = [];
+  cities.forEach((city, i) => {
+    const cityApps = appsByCity[city];
+    const boundary = boundaries[i];
+    const popup = buildCityPopupHTML(city, cityApps);
+    const tooltip = `${city} (${cityApps.length})`;
+
+    if (boundary) {
+      const geoLayer = L.geoJSON(boundary, {
+        style: {
+          color: RAP_MAP_MARKER_STYLE.strokeColor,
+          weight: RAP_MAP_MARKER_STYLE.strokeWeight,
+          fillColor: RAP_MAP_MARKER_STYLE.fillColor,
+          fillOpacity: RAP_MAP_MARKER_STYLE.fillOpacity,
+        },
+      });
+      geoLayer.bindTooltip(tooltip);
+      geoLayer.bindPopup(popup, { maxWidth: 340 });
+      geoLayer.addTo(raportointiMarkerLayer);
+      layerBoundsArr.push(geoLayer.getBounds());
+    } else {
+      const coords = getCityCoordinates(city);
+      if (!coords) return;
+      const marker = L.circleMarker(coords, {
+        radius: calculateMarkerRadius(cityApps.length),
+        color: RAP_MAP_MARKER_STYLE.strokeColor,
+        weight: RAP_MAP_MARKER_STYLE.strokeWeight,
+        fillColor: RAP_MAP_MARKER_STYLE.fillColor,
+        fillOpacity: RAP_MAP_MARKER_STYLE.fillOpacity,
+      });
+      marker.bindTooltip(tooltip);
+      marker.bindPopup(popup, { maxWidth: 340 });
+      marker.addTo(raportointiMarkerLayer);
+      layerBoundsArr.push(L.latLngBounds([coords, coords]));
+    }
   });
 
-  if (!markerLatLngs.length) {
+  if (!layerBoundsArr.length) {
     emptyNote.textContent = 'Paikkakunnille ei löytynyt koordinaatteja.';
     emptyNote.style.display = 'block';
     raportointiCompMap.setView(FINLAND_MAP_CENTER, FINLAND_MAP_ZOOM);
     return;
   }
-  if (markerLatLngs.length === 1) {
-    raportointiCompMap.setView(markerLatLngs[0], 7);
+  const combined = layerBoundsArr.reduce((acc, b) => acc.extend(b), layerBoundsArr[0]);
+  if (layerBoundsArr.length === 1) {
+    raportointiCompMap.fitBounds(combined, { padding: [40, 40], maxZoom: 11 });
   } else {
-    raportointiCompMap.fitBounds(L.latLngBounds(markerLatLngs), { padding: [36, 36], maxZoom: 7 });
+    raportointiCompMap.fitBounds(combined, { padding: [36, 36], maxZoom: 7 });
   }
   requestAnimationFrame(() => raportointiCompMap.invalidateSize());
 }
