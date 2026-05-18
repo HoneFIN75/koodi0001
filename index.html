@@ -1148,6 +1148,9 @@
   <button type="button" class="nav-item" id="nav-raportointi" onclick="navigate('raportointi')">
     <span class="nav-icon" aria-hidden="true">📊</span> Raportointi
   </button>
+  <button type="button" class="nav-item" id="nav-ohje" onclick="navigate('ohje')">
+    <span class="nav-icon" aria-hidden="true">🧭</span> Ohje
+  </button>
 
   <div class="sidebar-footer">
     Prototyyppi v1<br>
@@ -1167,7 +1170,7 @@
         <h1 class="section-title">Etusivu</h1>
         <span style="font-size:13px;color:var(--clr-muted)">KilpailuKalenteri-prototyypin yhteenveto</span>
       </div>
-      <span class="update-timestamp">Päivitetty 17.5.2026</span>
+      <span class="update-timestamp">Päivitetty __LAST_UPDATE__</span>
     </div>
     <div class="card">
       <h3 style="margin:0 0 10px 0;color:var(--clr-text)">Mikä tämä prototyyppi on?</h3>
@@ -1195,6 +1198,7 @@
         <div><strong>Lista</strong> – Tiivis taulukkonäkymä julkisista kilpailuista.</div>
         <div><strong>Kartta</strong> – Kilpailut paikkakunnittain karttapohjaisessa näkymässä (placeholder).</div>
         <div><strong>Raportointi</strong> – Kilpailujen määrät vuosi- ja kuukausitasolla: lista- ja karttanäkymä.</div>
+        <div><strong>Ohje</strong> – Yhteinen ohjeistus hakemusprosessista, rooleista ja kehityksen roadmapista.</div>
       </div>
     </div>
   </div>
@@ -1356,6 +1360,58 @@
       <div class="map-shell" style="border-top-left-radius:0;border-top-right-radius:0;border-top:none;border-color:var(--clr-border)">
         <div id="raportointiMap" aria-label="Raportoinnin kilpailukartta"></div>
         <div id="rapMapEmptyNote" class="map-empty-note" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OHJE VIEW -->
+  <div class="view" id="view-ohje">
+    <div class="section-header">
+      <div class="section-headline">
+        <h1 class="section-title">Ohje</h1>
+        <span style="font-size:13px;color:var(--clr-muted)">Perusohje hakemusprosessin ymmärtämiseen ja kehittämiseen</span>
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="margin:0 0 10px 0;color:var(--clr-text)">Yleinen kuvaus</h3>
+      <p style="margin:0;line-height:1.7;color:#374151">
+        Tämä ohje kokoaa yhteen kilpailuhakemusten hallinnan keskeiset käytännöt. Se on tarkoitettu erityisesti seuroille,
+        kilpailunjohtajille (TD), liiton käsittelijöille sekä muille toimijoille, jotka osallistuvat hakemusten valmisteluun
+        ja käsittelyyn.
+      </p>
+      <p style="margin:0;line-height:1.7;color:#374151">
+        Hyötynä on yhteinen toimintamalli: hakemusten eteneminen on läpinäkyvämpää, roolit selkeämmät ja yhteistyö sujuvampaa.
+        Samalla ohje toimii pohjana jatkokehitykselle, kun prosessia ja sisältöä tarkennetaan seuraavissa vaiheissa.
+      </p>
+    </div>
+    <div class="card">
+      <h3 style="margin:0 0 10px 0;color:var(--clr-text)">Hakemusprosessin elinkaari</h3>
+      <div style="display:grid;gap:10px;color:#374151;line-height:1.65">
+        <div><strong>Luonnos</strong> – Hakemus on työn alla, eikä sitä ole vielä toimitettu käsittelyyn.</div>
+        <div><strong>Lähetetty</strong> – Hakemus on jätetty ja odottaa käsittelyn aloitusta.</div>
+        <div><strong>Käsittelyssä</strong> – Hakemus on liiton tai adminin tarkastuksessa, ja siihen voidaan pyytää täydennyksiä.</div>
+        <div><strong>Hyväksytty</strong> – Hakemus on hyväksytty, mutta sitä ei ole vielä julkaistu julkisissa näkymissä.</div>
+        <div><strong>Julkaistu</strong> – Kilpailu on julkaistu kalenteriin ja näkyy julkisille rooleille.</div>
+        <div><strong>Hylätty</strong> – Hakemusta ei hyväksytty nykyisessä muodossaan; tarvitaan korjaukset tai uusi hakemus.</div>
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="margin:0 0 10px 0;color:var(--clr-text)">Roolit</h3>
+      <div style="display:grid;gap:10px;color:#374151;line-height:1.65">
+        <div><strong>Admin</strong> – Vastaa kokonaisuudesta, hallitsee näkymiä ja tukee prosessin etenemistä.</div>
+        <div><strong>Liitto</strong> – Käsittelee hakemuksia, tekee linjauksia ja varmistaa sääntöjen toteutumisen.</div>
+        <div><strong>Kilpailunjohtaja</strong> – Laatii hakemuksen, täydentää tietoja ja vastaa kilpailukohtaisesta sisällöstä.</div>
+        <div><strong>Kilpailija</strong> – Tarkastelee julkaistuja kilpailuja ja hyödyntää kalenteri-, lista- ja karttanäkymiä.</div>
+        <div><strong>Yleisö</strong> – Seuraa julkaistuja kilpailuja ilman työroolien käsittelytoimintoja.</div>
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="margin:0 0 10px 0;color:var(--clr-text)">Kehityksen roadmap</h3>
+      <div style="display:grid;gap:10px;color:#374151;line-height:1.65">
+        <div><strong>Vaihe 1:</strong> Yhtenäistetään ohjeen rakenne ja varmistetaan yhteinen sanasto kaikille rooleille.</div>
+        <div><strong>Vaihe 2:</strong> Laajennetaan tilakohtaisia ohjeita konkreettisilla esimerkeillä ja vastuunjaolla.</div>
+        <div><strong>Vaihe 3:</strong> Lisätään tarkistuslistat hakemuksen laadintaan, käsittelyyn ja julkaisuun.</div>
+        <div><strong>Vaihe 4:</strong> Sidotaan ohje osaksi myöhempää järjestelmäkehitystä (esim. tallennus, kommentointi, seuranta).</div>
       </div>
     </div>
   </div>
@@ -2075,6 +2131,7 @@ const VIEW_TITLES = {
   lista:      'Lista',
   kartta:     'Kartta',
   raportointi: 'Raportointi',
+  ohje:       'Ohje',
 };
 
 const VIEW_NAV_ITEMS = {

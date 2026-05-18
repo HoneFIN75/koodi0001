@@ -28,7 +28,7 @@ jobs:
 
       - name: Inject latest update timestamp
         run: |
-          LAST_UPDATE="$(git log -1 --format=%cd --date=format:'%d.%m.%Y %H:%M' "$GITHUB_SHA")"
+          LAST_UPDATE="$(git log -1 --format=%cd --date=format:'%d.%m.%Y klo %H:%M' "$GITHUB_SHA")"
           if grep -q "__LAST_UPDATE__" index.html; then
             sed -i "s|__LAST_UPDATE__|$LAST_UPDATE|g" index.html
             echo "Updated __LAST_UPDATE__ placeholder in index.html"
