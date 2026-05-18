@@ -2017,7 +2017,7 @@ let cityMarkerLayer = null;
 let raportointiCompMap = null;
 let raportointiMarkerLayer = null;
 const CITY_BOUNDARY_CACHE = {};
-let raportointiBoundaryRequestId = 0;
+let raportointiCurrentBoundaryRequestId = 0;
 let raportointiTab = 'lista';
 let raportointiSubTab = 'vuosi';
 let raportointiExpandedYear = null;
@@ -2989,7 +2989,7 @@ async function fetchCityBoundariesSequential(cities) {
 async function renderRaportointiKartta() {
   const emptyNote = document.getElementById('rapMapEmptyNote');
   const infoEl = document.getElementById('rapMapYearInfo');
-  const requestId = ++raportointiBoundaryRequestId;
+  const requestId = ++raportointiCurrentBoundaryRequestId;
   if (typeof L === 'undefined') {
     emptyNote.textContent = 'Karttapalvelua ei voitu ladata.';
     emptyNote.style.display = 'block';
@@ -3022,7 +3022,7 @@ async function renderRaportointiKartta() {
   }
 
   const boundaries = await fetchCityBoundariesSequential(cities);
-  if (requestId !== raportointiBoundaryRequestId) return;
+  if (requestId !== raportointiCurrentBoundaryRequestId) return;
 
   emptyNote.style.display = 'none';
 
