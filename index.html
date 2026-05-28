@@ -1175,12 +1175,13 @@
     <div class="card">
       <h3 style="margin:0 0 10px 0;color:var(--clr-text)">Mikä tämä prototyyppi on?</h3>
       <p style="margin:0;line-height:1.7;color:#374151">
-        KilpailuKalenteri on selainkäyttöinen käyttöliittymäprototyyppi kilpailujen hakemusten hallintaan ja
-        julkiseen näkyvyyteen. 
+        KilpailuKalenteri on Suomen Frisbeegolfliiton kilpailuprosessin selainkäyttöinen käyttöliittymäprototyyppi:
+        työrooleille hakemusten käsittelyyn ja julkisille rooleille kilpailujen selaamiseen.
       </p>
       <p style="margin:0;line-height:1.7;color:#374151">
-          Sovellus demonstroi roolipohjaista näkymää, hakemusten tiloja sekä eri tapoja tarkastella julkisia kilpailuja ilman backend-riippuvuuksia.
-          Toiminnallisuuksia lisätään vaiheittain.
+        Prototyyppi näyttää hakemusten elinkaaren (kanban), lomakemockupin, julkiset kalenteri/lista/kartta-näkymät
+        sekä raportoinnin lista- ja karttatasolla. Toteutus on tarkoituksella kevyt: ei backendiä, käyttäjähallintaa
+        eikä pysyvää tallennusta.
       </p>
     </div>
     <div class="card">
@@ -1188,17 +1189,18 @@
       <div style="display:grid;gap:10px">
         <div><strong>Etusivu</strong> – Yleisnäkymä prototyypistä ja navigaation sisällöstä.</div>
         <div>
-          <strong>Hakemukset</strong> – Työrooleille tarkoitettu näkymä hakemusten käsittelyyn ja tietojen tarkasteluun.
+          <strong>Hakemukset</strong> *(vain työrooleille)* – Kanban-näkymä hakemusten käsittelyyn sekä haku ja suodatus
+          kilpailutason ja elinkaaren tilan mukaan.
           <ul style="margin:6px 0 0 22px;color:#374151">
-            <li>Hakemukset-sivulla on painike <strong>"Uusi hakemus"</strong>, jota painamalla avautuu <strong>hakemuslomakkeen MOCKUP</strong> omana sivunaan.</li>
-            <li><strong>"Tallenna hakemus"</strong> ei oikeasti tallenna mitään, vaan toimii vain prototyypin esittelynä.</li>
+            <li>Painike <strong>"+ Uusi hakemus"</strong> avaa erillisen hakemuslomakkeen mockup-sivun.</li>
+            <li>Lomakesivun toiminnot ovat demoa: tiedot eivät tallennu pysyvästi.</li>
           </ul>
         </div>
-        <div><strong>Kalenteri</strong> – Julkiset ja hyväksytyt kilpailut aikajärjestyksessä korttinäkymänä.</div>
-        <div><strong>Lista</strong> – Tiivis taulukkonäkymä julkisista kilpailuista.</div>
-        <div><strong>Kartta</strong> – Kilpailut paikkakunnittain karttapohjaisessa näkymässä (placeholder).</div>
-        <div><strong>Raportointi</strong> – Kilpailujen määrät vuosi- ja kuukausitasolla: lista- ja karttanäkymä.</div>
-        <div><strong>Ohje</strong> – Yhteinen ohjeistus hakemusprosessista, rooleista ja kehityksen roadmapista.</div>
+        <div><strong>Kalenteri</strong> – Julkiset kilpailut korttinäkymänä kuukausisuodatuksilla.</div>
+        <div><strong>Lista</strong> – Julkiset kilpailut taulukkonäkymänä samoilla kuukausisuodatuksilla.</div>
+        <div><strong>Kartta</strong> – Julkiset kilpailut paikkakunnittain Leaflet-kartalla ja kilpailutasosuodatuksella.</div>
+        <div><strong>Raportointi</strong> – Kilpailumäärät listana (vuosi/kuukausi) ja karttanäkymänä.</div>
+        <div><strong>Ohje</strong> – Hakemusprosessin elinkaari, roolit ja kehityksen seuraavat vaiheet.</div>
       </div>
     </div>
   </div>
