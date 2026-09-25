@@ -4,7 +4,7 @@ Selainkäyttöinen käyttöliittymäprototyyppi **Suomen Frisbeegolfliiton** kil
 Ei backend-riippuvuuksia, ei tietokantaa, ei autentikointia – pelkkä frontend mock-datalla.
 
 **Ulkoiset riippuvuudet (CDN):** Leaflet 1.9.4 (kartta) + OpenStreetMap-taustakartta.
-
+Test
 ---
 
 ## 🚀 Käynnistys
